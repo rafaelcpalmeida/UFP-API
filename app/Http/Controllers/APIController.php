@@ -76,4 +76,8 @@ class APIController extends Controller {
     private function encodeMessage($status, $message) {
         return json_encode(["status" => ($status == 0) ? "Ok" : "Error", "message" => $message]);
     }
+
+    private function encryptMessage($message) {
+        return Crypt::encrypt($message);
+    }
 }
