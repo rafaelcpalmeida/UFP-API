@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 
-class ExampleMiddleware
+class AuthMiddleware
 {
     /**
      * Handle an incoming request.
@@ -15,6 +15,10 @@ class ExampleMiddleware
      */
     public function handle($request, Closure $next)
     {
+        if(empty($request->input('token'))) {
+            abort(403, 'Access denied');
+        }
+        
         return $next($request);
     }
 }
