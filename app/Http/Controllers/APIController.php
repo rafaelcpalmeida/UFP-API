@@ -57,6 +57,40 @@ class APIController extends Controller {
         }
     }
 
+    public function getGrades(Request $request, $type) {
+        $token = $this->decryptToken($request->input("token"));
+
+        if($token) {
+            $gradesAux = $this->getDataFromSOAPServer("grade", array("grade" => array("token" => $token)));
+            //$assiduity = array();
+
+            switch ($type) {
+                case "finals":
+                    $finalGrades = $this->parseFinalGrades(json_decode($gradesAux->gradeResult)->grade->definitivo);
+                    return (!empty($finalGrades)) ? $this->encodeMessage(0, $finalGrades) : $this->encodeMessage(1, "No final grades information found");
+                    break;
+                case "detailed":
+                    print_r(json_decode($gradesAux->gradeResult)->grade->provisorio->parciais);
+                    break;
+                default:
+                    return $this->encodeMessage(1, "Option '$type' doesn't exist. Please refer to docs");
+                    break;
+            }
+            /*print_r(json_decode($gradesAux->gradeResult)->grade->definitivo);
+            echo "<br/><br/><br/><br/><br/><br/>";
+            print_r(json_decode($gradesAux->gradeResult)->grade->provisorio->parciais);
+            echo "<br/><br/><br/><br/><br/><br/>";
+            print_r(json_decode($gradesAux->gradeResult)->grade->provisorio->finais);
+            echo "<br/><br/><br/><br/><br/><br/>";*/
+            /*foreach(json_decode($gradesAux->gradeResult)->grade as $grade) {
+                var_dump($grade);
+                echo "<br/><br/><br/><br/><br/><br/>";
+            }*/
+        } else {
+            return $this->encodeMessage(1, "Couldn't decrypt sent token");
+        }
+    }
+
     private function decryptToken($encryptedToken) {
         try {
             return Crypt::decrypt($encryptedToken);
@@ -79,5 +113,15 @@ class APIController extends Controller {
 
     private function encryptMessage($message) {
         return Crypt::encrypt($message);
+    }
+
+    private function parseFinalGrades($grades) {
+        $gradesAux = array();
+
+        foreach($grades as $grade) {
+            $gradesAux[$grade->Grau][$grade->Curso][] = array("unidade" => $grade->Unidade, "nota" => $grade->Nota);
+        }
+
+        return $gradesAux;
     }
 }
