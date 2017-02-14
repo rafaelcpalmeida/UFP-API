@@ -62,7 +62,6 @@ class APIController extends Controller {
 
         if($token) {
             $gradesAux = $this->getDataFromSOAPServer("grade", array("grade" => array("token" => $token)));
-            //$assiduity = array();
 
             switch ($type) {
                 case "finals":
@@ -70,22 +69,13 @@ class APIController extends Controller {
                     return (!empty($finalGrades)) ? $this->encodeMessage(0, $finalGrades) : $this->encodeMessage(1, "No final grades information found");
                     break;
                 case "detailed":
-                    print_r(json_decode($gradesAux->gradeResult)->grade->provisorio->parciais);
+                    $detailedGrades = $this->parseDetailedGrades(json_decode($gradesAux->gradeResult)->grade->provisorio->parciais);
+                    return (!empty($detailedGrades)) ? $this->encodeMessage(0, $detailedGrades) : $this->encodeMessage(1, "No detailed grades information found");
                     break;
                 default:
                     return $this->encodeMessage(1, "Option '$type' doesn't exist. Please refer to docs");
                     break;
             }
-            /*print_r(json_decode($gradesAux->gradeResult)->grade->definitivo);
-            echo "<br/><br/><br/><br/><br/><br/>";
-            print_r(json_decode($gradesAux->gradeResult)->grade->provisorio->parciais);
-            echo "<br/><br/><br/><br/><br/><br/>";
-            print_r(json_decode($gradesAux->gradeResult)->grade->provisorio->finais);
-            echo "<br/><br/><br/><br/><br/><br/>";*/
-            /*foreach(json_decode($gradesAux->gradeResult)->grade as $grade) {
-                var_dump($grade);
-                echo "<br/><br/><br/><br/><br/><br/>";
-            }*/
         } else {
             return $this->encodeMessage(1, "Couldn't decrypt sent token");
         }
@@ -120,6 +110,19 @@ class APIController extends Controller {
 
         foreach($grades as $grade) {
             $gradesAux[$grade->Grau][$grade->Curso][] = array("unidade" => $grade->Unidade, "nota" => $grade->Nota);
+        }
+
+        return $gradesAux;
+    }
+
+    private function parseDetailedGrades($grades) {
+        $gradesAux = array();
+
+        //var_dump($grades);
+        //{ [0]=> object(stdClass)#118 (7) { ["AnoLectivo"]=> string(7) "2016/17" ["Modelo"]=> string(91) "Modelo de avaliação contínua da unidade curricular de Algoritmia e Estruturas de Dados 1" ["Unidade"]=> string(34) "Algoritmos e Estruturas de Dados I" ["Elemento"]=> string(32) "Nota da Componente Prática (PL)" ["Nota"]=> string(3) "7.6" ["Responsavel"]=> string(19) "José Manuel Torres" ["Registo"]=> string(19) "2017-01-21 14:10:31" }
+
+        foreach($grades as $grade) {
+            $gradesAux[$grade->Unidade][] = array("unidade" => $grade->Unidade, "elemento" => $grade->Elemento, "nota" => $grade->Nota);
         }
 
         return $gradesAux;
