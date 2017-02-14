@@ -118,9 +118,6 @@ class APIController extends Controller {
     private function parseDetailedGrades($grades) {
         $gradesAux = array();
 
-        //var_dump($grades);
-        //{ [0]=> object(stdClass)#118 (7) { ["AnoLectivo"]=> string(7) "2016/17" ["Modelo"]=> string(91) "Modelo de avaliação contínua da unidade curricular de Algoritmia e Estruturas de Dados 1" ["Unidade"]=> string(34) "Algoritmos e Estruturas de Dados I" ["Elemento"]=> string(32) "Nota da Componente Prática (PL)" ["Nota"]=> string(3) "7.6" ["Responsavel"]=> string(19) "José Manuel Torres" ["Registo"]=> string(19) "2017-01-21 14:10:31" }
-
         foreach($grades as $grade) {
             $gradesAux[$grade->Unidade][] = array("unidade" => $grade->Unidade, "elemento" => $grade->Elemento, "nota" => $grade->Nota);
         }
