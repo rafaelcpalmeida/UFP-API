@@ -81,6 +81,20 @@ class APIController extends Controller {
         }
     }
 
+    public function getSchedule(Request $request) {
+        $token = $this->decryptToken($request->input("token"));
+
+        if($token) {
+            $scheduleAux = $this->getDataFromSOAPServer("schedule", array("schedule" => array("token" => $token)));
+
+            $parsedSchedule = $this->parseSchedule(json_decode($scheduleAux->scheduleResult)->schedule);
+            
+            return (!empty($parsedSchedule)) ? $this->encodeMessage(0, $parsedSchedule) : $this->encodeMessage(1, "No schedule information found");
+        } else {
+            return $this->encodeMessage(1, "Couldn't decrypt sent token");
+        }
+    }
+
     private function decryptToken($encryptedToken) {
         try {
             return Crypt::decrypt($encryptedToken);
@@ -123,5 +137,15 @@ class APIController extends Controller {
         }
 
         return $gradesAux;
+    }
+
+    private function parseSchedule($schedule) {
+        $scheduleAux = array();
+
+        foreach($schedule as $days) {
+            $scheduleAux[$days->Data][] = array("inicio" => $days->Inicio, "termo" => $days->Termo, "sala" => $days->Sala, "unidade" => $days->Unidade, "tipo" => $days->Tipo);
+        }
+
+        return $scheduleAux;
     }
 }

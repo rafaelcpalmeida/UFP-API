@@ -25,6 +25,7 @@ $app->group(['prefix' => 'api'], function () use ($app) {
             $app->get('atm', 'APIController@getMB');
             $app->get('assiduity', 'APIController@getAssiduity');
             $app->get('grades/{type}', 'APIController@getGrades');
+            $app->get('schedule', 'APIController@getSchedule');
         });
     });
 });
