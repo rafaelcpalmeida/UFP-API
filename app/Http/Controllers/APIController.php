@@ -131,7 +131,7 @@ class APIController extends Controller {
 
     private function parseDetailedGrades($grades) {
         $gradesAux = array();
-        
+
         foreach($grades as $grade) {
             $gradesAux[$grade->Unidade][$grade->AnoLectivo][] = array("unidade" => $grade->Unidade, "elemento" => $grade->Elemento, "nota" => $grade->Nota);
         }
@@ -141,10 +141,6 @@ class APIController extends Controller {
 
     private function parseSchedule($schedule) {
         $scheduleAux = array();
-
-        echo "<pre>"; 
-        print_r($schedule);
-        echo "</pre>";
 
         foreach($schedule as $days) {
             $scheduleAux[$days->Data][] = array("inicio" => $days->Inicio, "termo" => $days->Termo, "sala" => $days->Sala, "unidade" => $days->Unidade, "tipo" => $days->Tipo);
