@@ -3,17 +3,20 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
+use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Contracts\Encryption\DecryptException;
 use SoapClient;
 
 class APIController extends Controller {
+    protected $crypt;
+    
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct() {
+    public function __construct(Encrypter $crypt) {
+        $this->crypt = $crypt;
     }
 
     public function index() {
@@ -25,7 +28,7 @@ class APIController extends Controller {
 
         $sessionToken = $this->getDataFromSOAPServer("shakeHands", array("shakeHands" => array("input" => $authToken->EncryptResult)));
 
-        return (isset($sessionToken->shakeHandsResult) && $sessionToken->shakeHandsResult != "") ? $this->encodeMessage(0, Crypt::encrypt($sessionToken->shakeHandsResult)) : $this->encodeMessage(1, "Check your credentials");
+        return (isset($sessionToken->shakeHandsResult) && $sessionToken->shakeHandsResult != "") ? $this->encodeMessage(0, $this->crypt->encrypt($sessionToken->shakeHandsResult)) : $this->encodeMessage(1, "Check your credentials");
     }
 
     public function getMB(Request $request) {
@@ -97,7 +100,7 @@ class APIController extends Controller {
 
     private function decryptToken($encryptedToken) {
         try {
-            return Crypt::decrypt($encryptedToken);
+            return $this->crypt->decrypt($encryptedToken);
         } catch (DecryptException $e) {
             return false;
         }
@@ -116,7 +119,7 @@ class APIController extends Controller {
     }
 
     private function encryptMessage($message) {
-        return Crypt::encrypt($message);
+        return $this->crypt->encrypt($message);
     }
 
     private function parseFinalGrades($grades) {
