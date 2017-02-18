@@ -35,9 +35,9 @@ class APIController extends Controller {
             $mbDetails = $this->getDataFromSOAPServer("atm", array("atm" => array("token" => $token)));
 
             return (isset(json_decode($mbDetails->atmResult)->atm[0])) ? $this->encodeMessage(0, json_decode($mbDetails->atmResult)->atm[0]) : $this->encodeMessage(1, "No payment information found");
-        } else {
-            return $this->encodeMessage(1, "Couldn't decrypt sent token");
         }
+        
+        return $this->encodeMessage(1, "Couldn't decrypt sent token");
     }
 
     public function getAssiduity(Request $request) {
@@ -52,9 +52,9 @@ class APIController extends Controller {
             }
 
             return (!empty($assiduity)) ? $this->encodeMessage(0, $assiduity) : $this->encodeMessage(1, "No payment information found");
-        } else {
-            return $this->encodeMessage(1, "Couldn't decrypt sent token");
         }
+
+        return $this->encodeMessage(1, "Couldn't decrypt sent token");
     }
 
     public function getGrades(Request $request, $type) {
@@ -76,9 +76,9 @@ class APIController extends Controller {
                     return $this->encodeMessage(1, "Option '$type' doesn't exist. Please refer to docs");
                     break;
             }
-        } else {
-            return $this->encodeMessage(1, "Couldn't decrypt sent token");
         }
+
+        return $this->encodeMessage(1, "Couldn't decrypt sent token");
     }
 
     public function getSchedule(Request $request) {
@@ -90,9 +90,9 @@ class APIController extends Controller {
             $parsedSchedule = $this->parseSchedule(json_decode($scheduleAux->scheduleResult)->schedule);
             
             return (!empty($parsedSchedule)) ? $this->encodeMessage(0, $parsedSchedule) : $this->encodeMessage(1, "No schedule information found");
-        } else {
-            return $this->encodeMessage(1, "Couldn't decrypt sent token");
         }
+        
+        return $this->encodeMessage(1, "Couldn't decrypt sent token");
     }
 
     private function decryptToken($encryptedToken) {
