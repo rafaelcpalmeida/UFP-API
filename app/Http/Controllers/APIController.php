@@ -8,8 +8,10 @@ use Illuminate\Contracts\Encryption\DecryptException;
 use SoapClient;
 
 class APIController extends Controller {
-    protected $crypt;
-    protected $apiToken;
+    private $crypt;
+    private $apiToken;
+    private $username;
+    private $password;
     
     /**
      * Create a new controller instance.
@@ -18,15 +20,17 @@ class APIController extends Controller {
      */
     public function __construct(Encrypter $crypt, Request $request) {
         $this->crypt = $crypt;
-        $this->setApiToken($request->input("token"));
+        $this->apiToken = $request->input("token");
+        $this->username = $request->input("username");
+        $this->password = $request->input("password");
     }
 
     public function index() {
         return json_encode(["Version" => "1.0"]);
     }
 
-    public function login(Request $request) {
-        $authToken = $this->getDataFromSOAPServer("Encrypt", array("Encrypt" => array("phrase" => $request->input("username").",".$request->input("password"))));
+    public function login() {
+        $authToken = $this->getDataFromSOAPServer("Encrypt", array("Encrypt" => array("phrase" => "$this->username,$this->password")));
 
         $sessionToken = $this->getDataFromSOAPServer("shakeHands", array("shakeHands" => array("input" => $authToken->EncryptResult)));
 
@@ -49,7 +53,7 @@ class APIController extends Controller {
         return $this->encodeMessage(1, "Couldn't decrypt sent token");
     }
 
-    public function getAssiduity(Request $request) {
+    public function getAssiduity() {
         $token = $this->decryptToken($this->apiToken);
 
         if($token) {
@@ -70,7 +74,7 @@ class APIController extends Controller {
         return $this->encodeMessage(1, "Couldn't decrypt sent token");
     }
 
-    public function getGrades(Request $request, $type) {
+    public function getGrades($type) {
         $token = $this->decryptToken($this->apiToken);
 
         if($token) {
@@ -98,7 +102,7 @@ class APIController extends Controller {
         return $this->encodeMessage(1, "Couldn't decrypt sent token");
     }
 
-    public function getSchedule(Request $request) {
+    public function getSchedule() {
         $token = $this->decryptToken($this->apiToken);
 
         if($token) {
@@ -147,10 +151,6 @@ class APIController extends Controller {
             return true;
         
         return false;
-    }
-
-    private function setApiToken($token) {
-        $this->apiToken = $token;
     }
 
     private function parseFinalGrades($grades) {
