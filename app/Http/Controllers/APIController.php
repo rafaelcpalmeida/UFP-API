@@ -9,14 +9,16 @@ use SoapClient;
 
 class APIController extends Controller {
     protected $crypt;
+    protected $apiToken;
     
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct(Encrypter $crypt) {
+    public function __construct(Encrypter $crypt, Request $request) {
         $this->crypt = $crypt;
+        $this->setApiToken($request->input("token"));
     }
 
     public function index() {
@@ -31,8 +33,8 @@ class APIController extends Controller {
         return (isset($sessionToken->shakeHandsResult) && $sessionToken->shakeHandsResult != "") ? $this->encodeMessage(0, $this->crypt->encrypt($sessionToken->shakeHandsResult)) : $this->encodeMessage(1, "Check your credentials");
     }
 
-    public function getMB(Request $request) {
-        $token = $this->decryptToken($request->input("token"));
+    public function getMB() {
+        $token = $this->decryptToken($this->apiToken);
 
         if($token) {
             if($this->isValidToken($token)) {
@@ -48,7 +50,7 @@ class APIController extends Controller {
     }
 
     public function getAssiduity(Request $request) {
-        $token = $this->decryptToken($request->input("token"));
+        $token = $this->decryptToken($this->apiToken);
 
         if($token) {
             if($this->isValidToken($token)) {
@@ -69,7 +71,7 @@ class APIController extends Controller {
     }
 
     public function getGrades(Request $request, $type) {
-        $token = $this->decryptToken($request->input("token"));
+        $token = $this->decryptToken($this->apiToken);
 
         if($token) {
             if($this->isValidToken($token)) {
@@ -97,7 +99,7 @@ class APIController extends Controller {
     }
 
     public function getSchedule(Request $request) {
-        $token = $this->decryptToken($request->input("token"));
+        $token = $this->decryptToken($this->apiToken);
 
         if($token) {
             if($this->isValidToken($token)) {
@@ -145,6 +147,10 @@ class APIController extends Controller {
             return true;
         
         return false;
+    }
+
+    private function setApiToken($token) {
+        $this->apiToken = $token;
     }
 
     private function parseFinalGrades($grades) {
