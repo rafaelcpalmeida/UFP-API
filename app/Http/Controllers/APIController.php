@@ -40,9 +40,7 @@ class APIController extends Controller {
         $sessionToken = $this->getDataFromSOAPServer("shakeHands", array("shakeHands" => array("input" => $authToken->EncryptResult)));
 
         if (isset($sessionToken->shakeHandsResult) && $sessionToken->shakeHandsResult != "") {
-            $hasDetail = $this->hasUserDetails("number", $this->username);
-
-            if (!$hasDetail) {
+            if (!$this->hasUserDetails("number", $this->username)) {
                 $newUser = new $this->user;
 
                 $newUser->number = $this->username;
@@ -68,10 +66,24 @@ class APIController extends Controller {
 
         if($tokenData->token) {
             if($this->isValidToken($tokenData->token)) {
-                $hasMBDetail = $this->hasUserMBDetails("");
-                $mbDetails = $this->getDataFromSOAPServer("atm", array("atm" => array("token" => $tokenData->token)));
+                if(!$this->hasUserMBDetails($tokenData->number)) {
+                    $mbDetails = $this->getDataFromSOAPServer("atm", array("atm" => array("token" => $tokenData->token)));
+                    
+                    if((isset(json_decode($mbDetails->atmResult)->atm[0]))) {
+                        $userMB = new $this->mb;
 
-                return (isset(json_decode($mbDetails->atmResult)->atm[0])) ? $this->encodeMessage(0, json_decode($mbDetails->atmResult)->atm[0]) : $this->encodeMessage(1, "No payment information found");
+                        $userMB->number = $tokenData->number;
+                        $userMB->mbDetails = json_decode($mbDetails->atmResult)->atm[0];
+
+                        $userMB->save();
+
+                        return $this->encodeMessage(0, $userMB->mbDetails);
+                    }
+
+                    return $this->encodeMessage(1, "No payment information found");
+                }
+                
+                return $this->encodeMessage(0, $this->mb->where("number", "=", $tokenData->number)->first()->mbDetails);
             }
             
             return $this->encodeMessage(1, "Not a valid token");
