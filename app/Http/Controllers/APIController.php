@@ -37,10 +37,27 @@ class APIController extends Controller {
 
         $sessionToken = $this->getDataFromSOAPServer("shakeHands", array("shakeHands" => array("input" => $authToken->EncryptResult)));
 
-        $currentUser = $this->user->where('number', '=', '26515');
-        var_dump($currentUser->exists());
+        if (isset($sessionToken->shakeHandsResult) && $sessionToken->shakeHandsResult != "") {
+            $currentUser = $this->user->where('number', '=', $this->username);
+            if (!$currentUser->exists()) {
+                $newUser = new $this->user;
 
-        return (isset($sessionToken->shakeHandsResult) && $sessionToken->shakeHandsResult != "") ? $this->encodeMessage(0, $this->crypt->encrypt($sessionToken->shakeHandsResult)) : $this->encodeMessage(1, "Check your credentials");
+                $newUser->number = $this->username;
+                $newUser->password = $this->crypt->encrypt($sessionToken->shakeHandsResult);
+
+                $newUser->save();
+            } else {
+                $existingUser = $currentUser->first();
+
+                $existingUser->password = $this->crypt->encrypt($sessionToken->shakeHandsResult);
+
+                $existingUser->save();
+            }
+
+            return $this->encodeMessage(0, $this->crypt->encrypt($sessionToken->shakeHandsResult));
+        }
+
+        return $this->encodeMessage(1, "Check your credentials");
     }
 
     public function getMB() {
