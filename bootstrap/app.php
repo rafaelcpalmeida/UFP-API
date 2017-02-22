@@ -61,9 +61,9 @@ $app->singleton(
 |
 */
 
-$app->middleware([
-    App\Http\Middleware\AuthMiddleware::class
-]);
+//$app->middleware([
+//    App\Http\Middleware\AuthMiddleware::class
+//]);
 
 /*
 |--------------------------------------------------------------------------
