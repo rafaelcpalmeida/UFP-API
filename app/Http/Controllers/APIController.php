@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Contracts\Encryption\DecryptException;
 use App\User;
+use App\Multibanco;
 use SoapClient;
 
 class APIController extends Controller {
@@ -20,12 +21,13 @@ class APIController extends Controller {
      *
      * @return void
      */
-    public function __construct(Encrypter $crypt, Request $request, User $user) {
+    public function __construct(Encrypter $crypt, Request $request, User $user, Multibanco $mb) {
         $this->crypt = $crypt;
         $this->apiToken = $request->input("token");
         $this->username = $request->input("username");
         $this->password = $request->input("password");
         $this->user = $user;
+        $this->mb = $mb;
     }
 
     public function index() {
@@ -55,18 +57,19 @@ class APIController extends Controller {
                 $existingUser->save();
             }
 
-            return $this->encodeMessage(0, $this->crypt->encrypt($sessionToken->shakeHandsResult));
+            return $this->encodeMessage(0, $this->crypt->encrypt(["number" => $this->username, "token" => $sessionToken->shakeHandsResult]));
         }
 
         return $this->encodeMessage(1, "Check your credentials");
     }
 
     public function getMB() {
-        $token = $this->decryptToken($this->apiToken);
+        $tokenData = (object) $this->decryptToken($this->apiToken);
 
-        if($token) {
-            if($this->isValidToken($token)) {
-                $mbDetails = $this->getDataFromSOAPServer("atm", array("atm" => array("token" => $token)));
+        if($tokenData->token) {
+            if($this->isValidToken($tokenData->token)) {
+                $hasMBDetail = $this->hasUserMBDetails("");
+                $mbDetails = $this->getDataFromSOAPServer("atm", array("atm" => array("token" => $tokenData->token)));
 
                 return (isset(json_decode($mbDetails->atmResult)->atm[0])) ? $this->encodeMessage(0, json_decode($mbDetails->atmResult)->atm[0]) : $this->encodeMessage(1, "No payment information found");
             }
@@ -78,11 +81,11 @@ class APIController extends Controller {
     }
 
     public function getAssiduity() {
-        $token = $this->decryptToken($this->apiToken);
+        $tokenData = (object) $this->decryptToken($this->apiToken);
 
-        if($token) {
-            if($this->isValidToken($token)) {
-                $assiduityAux = $this->getDataFromSOAPServer("assiduity", array("assiduity" => array("token" => $token)));
+        if($tokenData->token) {
+            if($this->isValidToken($tokenData->token)) {
+                $assiduityAux = $this->getDataFromSOAPServer("assiduity", array("assiduity" => array("token" => $tokenData->token)));
                 $assiduity = array();
 
                 foreach(json_decode($assiduityAux->assiduityResult)->assiduity as $detail) {
@@ -99,11 +102,11 @@ class APIController extends Controller {
     }
 
     public function getGrades($type) {
-        $token = $this->decryptToken($this->apiToken);
+        $tokenData = (object) $this->decryptToken($this->apiToken);
 
-        if($token) {
-            if($this->isValidToken($token)) {
-                $gradesAux = $this->getDataFromSOAPServer("grade", array("grade" => array("token" => $token)));
+        if($tokenData->token) {
+            if($this->isValidToken($tokenData->token)) {
+                $gradesAux = $this->getDataFromSOAPServer("grade", array("grade" => array("token" => $tokenData->token)));
                 
                 switch ($type) {
                     case "finals":
@@ -127,11 +130,11 @@ class APIController extends Controller {
     }
 
     public function getSchedule() {
-        $token = $this->decryptToken($this->apiToken);
+        $tokenData = (object) $this->decryptToken($this->apiToken);
 
-        if($token) {
-            if($this->isValidToken($token)) {
-                $scheduleAux = $this->getDataFromSOAPServer("schedule", array("schedule" => array("token" => $token)));
+        if($tokenData->token) {
+            if($this->isValidToken($tokenData->token)) {
+                $scheduleAux = $this->getDataFromSOAPServer("schedule", array("schedule" => array("token" => $tokenData->token)));
 
                 $parsedSchedule = $this->parseSchedule(json_decode($scheduleAux->scheduleResult)->schedule);
                 
@@ -179,6 +182,10 @@ class APIController extends Controller {
 
     private function hasUserDetails($detail, $userNumber) {
         return $this->user->where($detail, "=", $userNumber)->exists();
+    }
+
+    private function hasUserMBDetails($userNumber) {
+        return $this->mb->where("number", "=", $userNumber)->exists();
     }
 
     private function parseFinalGrades($grades) {
