@@ -38,8 +38,9 @@ class APIController extends Controller {
         $sessionToken = $this->getDataFromSOAPServer("shakeHands", array("shakeHands" => array("input" => $authToken->EncryptResult)));
 
         if (isset($sessionToken->shakeHandsResult) && $sessionToken->shakeHandsResult != "") {
-            $currentUser = $this->user->where('number', '=', $this->username);
-            if (!$currentUser->exists()) {
+            $hasDetail = $this->hasUserDetails("number", $this->username);
+
+            if (!$hasDetail) {
                 $newUser = new $this->user;
 
                 $newUser->number = $this->username;
@@ -47,7 +48,7 @@ class APIController extends Controller {
 
                 $newUser->save();
             } else {
-                $existingUser = $currentUser->first();
+                $existingUser = $this->user->where("number", "=", $this->username)->first();
 
                 $existingUser->password = $this->crypt->encrypt($sessionToken->shakeHandsResult);
 
@@ -170,10 +171,14 @@ class APIController extends Controller {
     private function isValidToken($token) {
         $mbDetails = $this->getDataFromSOAPServer("atm", array("atm" => array("token" => $token)));
 
-        if(!property_exists(json_decode($mbDetails->atmResult), 'Error'))
+        if(!property_exists(json_decode($mbDetails->atmResult), "Error"))
             return true;
         
         return false;
+    }
+
+    private function hasUserDetails($detail, $userNumber) {
+        return $this->user->where($detail, "=", $userNumber)->exists();
     }
 
     private function parseFinalGrades($grades) {
