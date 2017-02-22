@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Contracts\Encryption\DecryptException;
+use App\User;
 use SoapClient;
 
 class APIController extends Controller {
@@ -12,17 +13,19 @@ class APIController extends Controller {
     private $apiToken;
     private $username;
     private $password;
+    private $user;
     
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct(Encrypter $crypt, Request $request) {
+    public function __construct(Encrypter $crypt, Request $request, User $user) {
         $this->crypt = $crypt;
         $this->apiToken = $request->input("token");
         $this->username = $request->input("username");
         $this->password = $request->input("password");
+        $this->user = $user;
     }
 
     public function index() {
@@ -33,6 +36,9 @@ class APIController extends Controller {
         $authToken = $this->getDataFromSOAPServer("Encrypt", array("Encrypt" => array("phrase" => "$this->username,$this->password")));
 
         $sessionToken = $this->getDataFromSOAPServer("shakeHands", array("shakeHands" => array("input" => $authToken->EncryptResult)));
+
+        $currentUser = $this->user->where('number', '=', '26515');
+        var_dump($currentUser->exists());
 
         return (isset($sessionToken->shakeHandsResult) && $sessionToken->shakeHandsResult != "") ? $this->encodeMessage(0, $this->crypt->encrypt($sessionToken->shakeHandsResult)) : $this->encodeMessage(1, "Check your credentials");
     }
