@@ -64,7 +64,7 @@ class APIController extends Controller {
     public function checkToken() {
         $tokenData = (object) $this->decryptToken($this->apiToken);
 
-        return $this->isValidToken($tokenData->token);
+        return json_encode(["Valid" => $this->isValidToken($tokenData->token)]);
     }
 
     public function getMB() {
