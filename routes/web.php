@@ -20,6 +20,7 @@ $app->group(['prefix' => 'api'], function () use ($app) {
         });
 
         $app->post('login', 'APIController@login');
+        $app->get('check-token', 'APIController@checkToken');
         
         $app->group(['middleware' => 'checkToken'], function () use ($app) {
             $app->get('atm', 'APIController@getMB');

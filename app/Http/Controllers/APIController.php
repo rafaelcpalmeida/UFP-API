@@ -61,32 +61,34 @@ class APIController extends Controller {
         return $this->encodeMessage(1, "Check your credentials");
     }
 
+    public function checkToken() {
+        $tokenData = (object) $this->decryptToken($this->apiToken);
+
+        return $this->isValidToken($tokenData->token);
+    }
+
     public function getMB() {
         $tokenData = (object) $this->decryptToken($this->apiToken);
 
         if($tokenData->token) {
-            if($this->isValidToken($tokenData->token)) {
-                if(!$this->hasUserMBDetails($tokenData->number)) {
-                    $mbDetails = $this->getDataFromSOAPServer("atm", array("atm" => array("token" => $tokenData->token)));
-                    
-                    if((isset(json_decode($mbDetails->atmResult)->atm[0]))) {
-                        $userMB = new $this->mb;
-
-                        $userMB->number = $tokenData->number;
-                        $userMB->mbDetails = json_decode($mbDetails->atmResult)->atm[0];
-
-                        $userMB->save();
-
-                        return $this->encodeMessage(0, $userMB->mbDetails);
-                    }
-
-                    return $this->encodeMessage(1, "No payment information found");
-                }
+            if(!$this->hasUserMBDetails($tokenData->number)) {
+                $mbDetails = $this->getDataFromSOAPServer("atm", array("atm" => array("token" => $tokenData->token)));
                 
-                return $this->encodeMessage(0, $this->mb->where("number", "=", $tokenData->number)->first()->mbDetails);
+                if((isset(json_decode($mbDetails->atmResult)->atm[0]))) {
+                    $userMB = new $this->mb;
+
+                    $userMB->number = $tokenData->number;
+                    $userMB->mbDetails = json_decode($mbDetails->atmResult)->atm[0];
+
+                    $userMB->save();
+
+                    return $this->encodeMessage(0, $userMB->mbDetails);
+                }
+
+                return $this->encodeMessage(1, "No payment information found");
             }
-            
-            return $this->encodeMessage(1, "Not a valid token");
+
+            return $this->encodeMessage(0, $this->mb->where("number", "=", $tokenData->number)->first()->mbDetails);
         }
         
         return $this->encodeMessage(1, "Couldn't decrypt sent token");
@@ -96,18 +98,14 @@ class APIController extends Controller {
         $tokenData = (object) $this->decryptToken($this->apiToken);
 
         if($tokenData->token) {
-            if($this->isValidToken($tokenData->token)) {
-                $assiduityAux = $this->getDataFromSOAPServer("assiduity", array("assiduity" => array("token" => $tokenData->token)));
-                $assiduity = array();
+            $assiduityAux = $this->getDataFromSOAPServer("assiduity", array("assiduity" => array("token" => $tokenData->token)));
+            $assiduity = array();
 
-                foreach(json_decode($assiduityAux->assiduityResult)->assiduity as $detail) {
-                    array_push($assiduity, array("unidade" => $detail->Unidade, "tipo" => $detail->Tipo, "assiduidade" => $detail->Assiduidade));
-                }
-
-                return (!empty($assiduity)) ? $this->encodeMessage(0, $assiduity) : $this->encodeMessage(1, "No payment information found");
+            foreach(json_decode($assiduityAux->assiduityResult)->assiduity as $detail) {
+                array_push($assiduity, array("unidade" => $detail->Unidade, "tipo" => $detail->Tipo, "assiduidade" => $detail->Assiduidade));
             }
-            
-            return $this->encodeMessage(1, "Not a valid token");
+
+            return (!empty($assiduity)) ? $this->encodeMessage(0, $assiduity) : $this->encodeMessage(1, "No payment information found");
         }
 
         return $this->encodeMessage(1, "Couldn't decrypt sent token");
@@ -117,25 +115,21 @@ class APIController extends Controller {
         $tokenData = (object) $this->decryptToken($this->apiToken);
 
         if($tokenData->token) {
-            if($this->isValidToken($tokenData->token)) {
-                $gradesAux = $this->getDataFromSOAPServer("grade", array("grade" => array("token" => $tokenData->token)));
-                
-                switch ($type) {
-                    case "finals":
-                        $finalGrades = $this->parseFinalGrades(json_decode($gradesAux->gradeResult)->grade->definitivo);
-                        return (!empty($finalGrades)) ? $this->encodeMessage(0, $finalGrades) : $this->encodeMessage(1, "No final grades information found");
-                        break;
-                    case "detailed":
-                        $detailedGrades = $this->parseDetailedGrades(json_decode($gradesAux->gradeResult)->grade->provisorio->parciais);
-                        return (!empty($detailedGrades)) ? $this->encodeMessage(0, $detailedGrades) : $this->encodeMessage(1, "No detailed grades information found");
-                        break;
-                    default:
-                        return $this->encodeMessage(1, "Option '$type' doesn't exist. Please refer to docs");
-                        break;
-                }
-            }
+            $gradesAux = $this->getDataFromSOAPServer("grade", array("grade" => array("token" => $tokenData->token)));
             
-            return $this->encodeMessage(1, "Not a valid token");
+            switch ($type) {
+                case "finals":
+                    $finalGrades = $this->parseFinalGrades(json_decode($gradesAux->gradeResult)->grade->definitivo);
+                    return (!empty($finalGrades)) ? $this->encodeMessage(0, $finalGrades) : $this->encodeMessage(1, "No final grades information found");
+                    break;
+                case "detailed":
+                    $detailedGrades = $this->parseDetailedGrades(json_decode($gradesAux->gradeResult)->grade->provisorio->parciais);
+                    return (!empty($detailedGrades)) ? $this->encodeMessage(0, $detailedGrades) : $this->encodeMessage(1, "No detailed grades information found");
+                    break;
+                default:
+                    return $this->encodeMessage(1, "Option '$type' doesn't exist. Please refer to docs");
+                    break;
+            }
         }
 
         return $this->encodeMessage(1, "Couldn't decrypt sent token");
@@ -145,15 +139,11 @@ class APIController extends Controller {
         $tokenData = (object) $this->decryptToken($this->apiToken);
 
         if($tokenData->token) {
-            if($this->isValidToken($tokenData->token)) {
-                $scheduleAux = $this->getDataFromSOAPServer("schedule", array("schedule" => array("token" => $tokenData->token)));
+            $scheduleAux = $this->getDataFromSOAPServer("schedule", array("schedule" => array("token" => $tokenData->token)));
 
-                $parsedSchedule = $this->parseSchedule(json_decode($scheduleAux->scheduleResult)->schedule);
-                
-                return (!empty($parsedSchedule)) ? $this->encodeMessage(0, $parsedSchedule) : $this->encodeMessage(1, "No schedule information found");
-            }
-
-            return $this->encodeMessage(1, json_decode($scheduleAux->scheduleResult)->Error);
+            $parsedSchedule = $this->parseSchedule(json_decode($scheduleAux->scheduleResult)->schedule);
+            
+            return (!empty($parsedSchedule)) ? $this->encodeMessage(0, $parsedSchedule) : $this->encodeMessage(1, "No schedule information found");
         }
         
         return $this->encodeMessage(1, "Not a valid token");
