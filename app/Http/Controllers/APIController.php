@@ -7,6 +7,8 @@ use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Contracts\Encryption\DecryptException;
 use App\User;
 use App\Multibanco;
+use App\Assiduity;
+use App\FinalGrades;
 use SoapClient;
 
 class APIController extends Controller {
@@ -15,19 +17,24 @@ class APIController extends Controller {
     private $username;
     private $password;
     private $user;
+    private $mb;
+    private $assiduity;
+    private $finalGrades;
     
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct(Encrypter $crypt, Request $request, User $user, Multibanco $mb) {
+    public function __construct(Encrypter $crypt, Request $request, User $user, Multibanco $mb, Assiduity $assiduity, FinalGrades $finalGrades) {
         $this->crypt = $crypt;
         $this->apiToken = $request->input("token");
         $this->username = $request->input("username");
         $this->password = $request->input("password");
         $this->user = $user;
         $this->mb = $mb;
+        $this->assiduity = $assiduity;
+        $this->finalGrades = $finalGrades;
     }
 
     public function index() {
@@ -98,14 +105,29 @@ class APIController extends Controller {
         $tokenData = (object) $this->decryptToken($this->apiToken);
 
         if($tokenData->token) {
-            $assiduityAux = $this->getDataFromSOAPServer("assiduity", array("assiduity" => array("token" => $tokenData->token)));
-            $assiduity = array();
+            if(!$this->hasUserAssiduityDetails($tokenData->number)) {
+                $assiduityAux = $this->getDataFromSOAPServer("assiduity", array("assiduity" => array("token" => $tokenData->token)));
+                $assiduity = array();
 
-            foreach(json_decode($assiduityAux->assiduityResult)->assiduity as $detail) {
-                array_push($assiduity, array("unidade" => $detail->Unidade, "tipo" => $detail->Tipo, "assiduidade" => $detail->Assiduidade));
+                foreach(json_decode($assiduityAux->assiduityResult)->assiduity as $detail) {
+                    array_push($assiduity, array("unidade" => $detail->Unidade, "tipo" => $detail->Tipo, "assiduidade" => $detail->Assiduidade));
+                }
+
+                if (!empty($assiduity)) {
+                    $userAssiduity = new $this->assiduity;
+
+                    $userAssiduity->number = $tokenData->number;
+                    $userAssiduity->assiduity = $assiduity;
+
+                    $userAssiduity->save();
+
+                    return $this->encodeMessage(0, $userAssiduity->assiduity);
+                }
+
+                return $this->encodeMessage(1, "No assiduity information found");
             }
 
-            return (!empty($assiduity)) ? $this->encodeMessage(0, $assiduity) : $this->encodeMessage(1, "No payment information found");
+            return $this->encodeMessage(0, $this->assiduity->where("number", "=", $tokenData->number)->first()->assiduity);
         }
 
         return $this->encodeMessage(1, "Couldn't decrypt sent token");
@@ -188,6 +210,14 @@ class APIController extends Controller {
 
     private function hasUserMBDetails($userNumber) {
         return $this->mb->where("number", "=", $userNumber)->exists();
+    }
+
+    private function hasUserAssiduityDetails($userNumber) {
+        return $this->assiduity->where("number", "=", $userNumber)->exists();
+    }
+
+    private function hasUserFinalGradesDetails($userNumber) {
+        return $this->finalGrades->where("number", "=", $userNumber)->exists();
     }
 
     private function parseFinalGrades($grades) {
