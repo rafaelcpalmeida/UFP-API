@@ -9,6 +9,7 @@ use App\User;
 use App\Multibanco;
 use App\Assiduity;
 use App\FinalGrades;
+use App\DetailedGrades;
 use SoapClient;
 
 class APIController extends Controller {
@@ -20,13 +21,14 @@ class APIController extends Controller {
     private $mb;
     private $assiduity;
     private $finalGrades;
+    private $detailedGrades;
     
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct(Encrypter $crypt, Request $request, User $user, Multibanco $mb, Assiduity $assiduity, FinalGrades $finalGrades) {
+    public function __construct(Encrypter $crypt, Request $request, User $user, Multibanco $mb, Assiduity $assiduity, FinalGrades $finalGrades, DetailedGrades $detailedGrades) {
         $this->crypt = $crypt;
         $this->apiToken = $request->input("token");
         $this->username = $request->input("username");
@@ -35,6 +37,7 @@ class APIController extends Controller {
         $this->mb = $mb;
         $this->assiduity = $assiduity;
         $this->finalGrades = $finalGrades;
+        $this->detailedGrades = $detailedGrades;
     }
 
     public function index() {
@@ -68,18 +71,15 @@ class APIController extends Controller {
         return $this->encodeMessage(1, "Check your credentials");
     }
 
-    public function checkToken() {
-        $tokenData = (object) $this->decryptToken($this->apiToken);
-
-        return json_encode(["Valid" => $this->isValidToken($tokenData->token)]);
-    }
-
     public function getMB() {
         $tokenData = (object) $this->decryptToken($this->apiToken);
 
         if($tokenData->token) {
             if(!$this->hasUserMBDetails($tokenData->number)) {
                 $mbDetails = $this->getDataFromSOAPServer("atm", array("atm" => array("token" => $tokenData->token)));
+
+                if(property_exists(json_decode($mbDetails->atmResult), "Error"))
+                    return $this->encodeMessage(1, "Invalid token");
                 
                 if((isset(json_decode($mbDetails->atmResult)->atm[0]))) {
                     $userMB = new $this->mb;
@@ -107,6 +107,10 @@ class APIController extends Controller {
         if($tokenData->token) {
             if(!$this->hasUserAssiduityDetails($tokenData->number)) {
                 $assiduityAux = $this->getDataFromSOAPServer("assiduity", array("assiduity" => array("token" => $tokenData->token)));
+
+                if(property_exists(json_decode($assiduityAux->assiduityResult), "Error"))
+                    return $this->encodeMessage(1, "Invalid token");
+
                 $assiduity = array();
 
                 foreach(json_decode($assiduityAux->assiduityResult)->assiduity as $detail) {
@@ -137,16 +141,56 @@ class APIController extends Controller {
         $tokenData = (object) $this->decryptToken($this->apiToken);
 
         if($tokenData->token) {
-            $gradesAux = $this->getDataFromSOAPServer("grade", array("grade" => array("token" => $tokenData->token)));
-            
             switch ($type) {
                 case "finals":
-                    $finalGrades = $this->parseFinalGrades(json_decode($gradesAux->gradeResult)->grade->definitivo);
-                    return (!empty($finalGrades)) ? $this->encodeMessage(0, $finalGrades) : $this->encodeMessage(1, "No final grades information found");
+                    if(!$this->hasUserFinalGradesDetails($tokenData->number)) {
+                        $gradesAux = $this->getDataFromSOAPServer("grade", array("grade" => array("token" => $tokenData->token)));
+
+                        if(property_exists(json_decode($gradesAux->gradeResult), "Error"))
+                            return $this->encodeMessage(1, "Invalid token");
+
+                        $finalGrades = $this->parseFinalGrades(json_decode($gradesAux->gradeResult)->grade->definitivo);
+
+                        if (!empty($finalGrades)) {
+                            $userFinalGrades = new $this->finalGrades;
+
+                            $userFinalGrades->number = $tokenData->number;
+                            $userFinalGrades->grades = $finalGrades;
+
+                            $userFinalGrades->save();
+
+                            return $this->encodeMessage(0, $userFinalGrades->grades);
+                        }
+
+                        return $this->encodeMessage(1, "No final grades information found");
+                    }
+
+                    return $this->encodeMessage(0, $this->finalGrades->where("number", "=", $tokenData->number)->first()->grades);
                     break;
                 case "detailed":
-                    $detailedGrades = $this->parseDetailedGrades(json_decode($gradesAux->gradeResult)->grade->provisorio->parciais);
-                    return (!empty($detailedGrades)) ? $this->encodeMessage(0, $detailedGrades) : $this->encodeMessage(1, "No detailed grades information found");
+                    if(!$this->hasUserFinalGradesDetails($tokenData->number)) {
+                        $gradesAux = $this->getDataFromSOAPServer("grade", array("grade" => array("token" => $tokenData->token)));
+
+                        if(property_exists(json_decode($gradesAux->gradeResult), "Error"))
+                            return $this->encodeMessage(1, "Invalid token");
+
+                        $detailedGrades = $this->parseDetailedGrades(json_decode($gradesAux->gradeResult)->grade->provisorio->parciais);
+
+                        if (!empty($detailedGrades)) {
+                            $userDetailedGrades = new $this->detailedGrades;
+
+                            $userDetailedGrades->number = $tokenData->number;
+                            $userDetailedGrades->grades = $detailedGrades;
+
+                            $userDetailedGrades->save();
+
+                            return $this->encodeMessage(0, $userDetailedGrades->grades);
+                        }
+
+                        return $this->encodeMessage(1, "No detailed grades information found");
+                    }
+
+                    return $this->encodeMessage(0, $this->detailedGrades->where("number", "=", $tokenData->number)->first()->grades);
                     break;
                 default:
                     return $this->encodeMessage(1, "Option '$type' doesn't exist. Please refer to docs");
@@ -195,15 +239,6 @@ class APIController extends Controller {
         return $this->crypt->encrypt($message);
     }
 
-    private function isValidToken($token) {
-        $mbDetails = $this->getDataFromSOAPServer("atm", array("atm" => array("token" => $token)));
-
-        if(!property_exists(json_decode($mbDetails->atmResult), "Error"))
-            return true;
-        
-        return false;
-    }
-
     private function hasUserDetails($detail, $userNumber) {
         return $this->user->where($detail, "=", $userNumber)->exists();
     }
@@ -218,6 +253,10 @@ class APIController extends Controller {
 
     private function hasUserFinalGradesDetails($userNumber) {
         return $this->finalGrades->where("number", "=", $userNumber)->exists();
+    }
+
+    private function hasUserDetailedGradesDetails($userNumber) {
+        return $this->detailedGrades->where("number", "=", $userNumber)->exists();
     }
 
     private function parseFinalGrades($grades) {
