@@ -168,7 +168,7 @@ class APIController extends Controller {
                     return $this->encodeMessage(0, $this->finalGrades->where("number", "=", $tokenData->number)->first()->grades);
                     break;
                 case "detailed":
-                    if(!$this->hasUserFinalGradesDetails($tokenData->number)) {
+                    if(!$this->hasUserDetailedGradesDetails($tokenData->number)) {
                         $gradesAux = $this->getDataFromSOAPServer("grade", array("grade" => array("token" => $tokenData->token)));
 
                         if(property_exists(json_decode($gradesAux->gradeResult), "Error"))
