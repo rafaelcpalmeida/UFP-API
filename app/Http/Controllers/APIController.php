@@ -10,6 +10,7 @@ use App\Multibanco;
 use App\Assiduity;
 use App\FinalGrades;
 use App\DetailedGrades;
+use App\Schedule;
 use SoapClient;
 
 class APIController extends Controller {
@@ -22,13 +23,14 @@ class APIController extends Controller {
     private $assiduity;
     private $finalGrades;
     private $detailedGrades;
+    private $schedule;
     
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct(Encrypter $crypt, Request $request, User $user, Multibanco $mb, Assiduity $assiduity, FinalGrades $finalGrades, DetailedGrades $detailedGrades) {
+    public function __construct(Encrypter $crypt, Request $request, User $user, Multibanco $mb, Assiduity $assiduity, FinalGrades $finalGrades, DetailedGrades $detailedGrades, Schedule $schedule) {
         $this->crypt = $crypt;
         $this->apiToken = $request->input("token");
         $this->username = $request->input("username");
@@ -38,6 +40,7 @@ class APIController extends Controller {
         $this->assiduity = $assiduity;
         $this->finalGrades = $finalGrades;
         $this->detailedGrades = $detailedGrades;
+        $this->schedule = $schedule;
     }
 
     public function index() {
@@ -205,11 +208,29 @@ class APIController extends Controller {
         $tokenData = (object) $this->decryptToken($this->apiToken);
 
         if($tokenData->token) {
-            $scheduleAux = $this->getDataFromSOAPServer("schedule", array("schedule" => array("token" => $tokenData->token)));
+            if(!$this->hasUserScheduleDetails($tokenData->number)) {
+                $scheduleAux = $this->getDataFromSOAPServer("schedule", array("schedule" => array("token" => $tokenData->token)));
 
-            $parsedSchedule = $this->parseSchedule(json_decode($scheduleAux->scheduleResult)->schedule);
+                if(property_exists(json_decode($scheduleAux->scheduleResult), "Error"))
+                    return $this->encodeMessage(1, "Invalid token");
+
+                $parsedSchedule = $this->parseSchedule(json_decode($scheduleAux->scheduleResult)->schedule);
+
+                if (!empty($parsedSchedule)) {
+                    $userParsedSchedule = new $this->schedule;
+
+                    $userParsedSchedule->number = $tokenData->number;
+                    $userParsedSchedule->schedule = $parsedSchedule;
+
+                    $userParsedSchedule->save();
+
+                    return $this->encodeMessage(0, $userParsedSchedule->schedule);
+                }
+
+                return $this->encodeMessage(1, "No schedule information found");   
+            }
             
-            return (!empty($parsedSchedule)) ? $this->encodeMessage(0, $parsedSchedule) : $this->encodeMessage(1, "No schedule information found");
+            return $this->encodeMessage(0, $this->schedule->where("number", "=", $tokenData->number)->first()->schedule);
         }
         
         return $this->encodeMessage(1, "Not a valid token");
@@ -257,6 +278,10 @@ class APIController extends Controller {
 
     private function hasUserDetailedGradesDetails($userNumber) {
         return $this->detailedGrades->where("number", "=", $userNumber)->exists();
+    }
+
+    private function hasUserScheduleDetails($userNumber) {
+        return $this->schedule->where("number", "=", $userNumber)->exists();
     }
 
     private function parseFinalGrades($grades) {
