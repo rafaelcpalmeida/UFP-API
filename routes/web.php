@@ -24,7 +24,8 @@ $app->group(['prefix' => 'api'], function () use ($app) {
         $app->group(['middleware' => 'checkToken'], function () use ($app) {
             $app->get('atm', 'MBController@getMB');
             $app->get('assiduity', 'AssiduityController@getAssiduity');
-            $app->get('grades/{type}', 'GradesController@getGrades');
+            $app->get('grades/final', 'GradesController@getFinalGrades');
+            $app->get('grades/detailed', 'GradesController@getDetailedGrades');
             $app->get('schedule', 'ScheduleController@getSchedule');
         });
     });
