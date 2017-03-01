@@ -20,8 +20,9 @@ class MBController extends Controller {
      *
      * @return void
      */
-    public function __construct(Request $request, MessagesController $message, User $user, Multibanco $mb) {
+    public function __construct(Request $request, SOAPController $soap, MessagesController $message, User $user, Multibanco $mb) {
         $this->apiToken = $request->input("token");
+        $this->soap = $soap;
         $this->user = $user;
         $this->message = $message;
         $this->mb = $mb;
@@ -32,7 +33,7 @@ class MBController extends Controller {
 
         if($tokenData->token) {
             if(!$this->hasUserMBDetails($tokenData->number)) {
-                $mbDetails = $this->getDataFromSOAPServer("atm", array("atm" => array("token" => $tokenData->token)));
+                $mbDetails = $this->soap->getDataFromSOAPServer("atm", array("atm" => array("token" => $tokenData->token)));
 
                 if(property_exists(json_decode($mbDetails->atmResult), "Error"))
                     return $this->message->encodeMessage(1, "Invalid token");

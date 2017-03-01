@@ -3,30 +3,40 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\User;
+use App\Schedule;
+use App\Http\Controllers\SOAPController;
+use App\Http\Controllers\MessagesController;
 
-class APIController extends Controller {    
+class ScheduleController extends Controller {
+    private $soap;
+    private $message;
+    private $user;    
+    private $schedule;
+    private $apiToken;
+
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct(Schedule $schedule) {
+    public function __construct(Request $request, SOAPController $soap, MessagesController $message, User $user, Schedule $schedule) {
+        $this->apiToken = $request->input("token");
+        $this->soap = $soap;
+        $this->user = $user;
+        $this->message = $message;
         $this->schedule = $schedule;
     }
 
-    public function index() {
-        return json_encode(["Version" => "1.0"]);
-    }
-
     public function getSchedule() {
-        $tokenData = (object) $this->decryptToken($this->apiToken);
+        $tokenData = (object) $this->message->decryptToken($this->apiToken);
 
         if($tokenData->token) {
             if(!$this->hasUserScheduleDetails($tokenData->number)) {
-                $scheduleAux = $this->getDataFromSOAPServer("schedule", array("schedule" => array("token" => $tokenData->token)));
+                $scheduleAux = $this->soap->getDataFromSOAPServer("schedule", array("schedule" => array("token" => $tokenData->token)));
 
                 if(property_exists(json_decode($scheduleAux->scheduleResult), "Error"))
-                    return $this->encodeMessage(1, "Invalid token");
+                    return $this->message->encodeMessage(1, "Invalid token");
 
                 $parsedSchedule = $this->parseSchedule(json_decode($scheduleAux->scheduleResult)->schedule);
 
@@ -38,16 +48,16 @@ class APIController extends Controller {
 
                     $userParsedSchedule->save();
 
-                    return $this->encodeMessage(0, $userParsedSchedule->schedule);
+                    return $this->message->encodeMessage(0, $userParsedSchedule->schedule);
                 }
 
-                return $this->encodeMessage(1, "No schedule information found");   
+                return $this->message->encodeMessage(1, "No schedule information found");   
             }
             
-            return $this->encodeMessage(0, $this->schedule->where("number", "=", $tokenData->number)->first()->schedule);
+            return $this->message->encodeMessage(0, $this->schedule->where("number", "=", $tokenData->number)->first()->schedule);
         }
         
-        return $this->encodeMessage(1, "Not a valid token");
+        return $this->message->encodeMessage(1, "Not a valid token");
     }
 
     private function hasUserScheduleDetails($userNumber) {

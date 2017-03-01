@@ -20,8 +20,9 @@ class AssiduityController extends Controller {
      *
      * @return void
      */
-    public function __construct(Request $request, MessagesController $message, User $user, Assiduity $assiduity) {
+    public function __construct(Request $request, SOAPController $soap, MessagesController $message, User $user, Assiduity $assiduity) {
         $this->apiToken = $request->input("token");
+        $this->soap = $soap;
         $this->user = $user;
         $this->message = $message;
         $this->assiduity = $assiduity;
@@ -32,7 +33,7 @@ class AssiduityController extends Controller {
 
         if($tokenData->token) {
             if(!$this->hasUserAssiduityDetails($tokenData->number)) {
-                $assiduityAux = $this->getDataFromSOAPServer("assiduity", array("assiduity" => array("token" => $tokenData->token)));
+                $assiduityAux = $this->soap->getDataFromSOAPServer("assiduity", array("assiduity" => array("token" => $tokenData->token)));
 
                 if(property_exists(json_decode($assiduityAux->assiduityResult), "Error"))
                     return $this->message->encodeMessage(1, "Invalid token");
