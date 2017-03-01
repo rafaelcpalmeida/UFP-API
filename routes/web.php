@@ -23,7 +23,7 @@ $app->group(['prefix' => 'api'], function () use ($app) {
         
         $app->group(['middleware' => 'checkToken'], function () use ($app) {
             $app->get('atm', 'MBController@getMB');
-            $app->get('assiduity', 'APIController@getAssiduity');
+            $app->get('assiduity', 'AssiduityController@getAssiduity');
             $app->get('grades/{type}', 'APIController@getGrades');
             $app->get('schedule', 'APIController@getSchedule');
         });
