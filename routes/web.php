@@ -19,7 +19,7 @@ $app->group(['prefix' => 'api'], function () use ($app) {
             return json_encode(["Version" => "1.0"]);
         });
 
-        $app->post('login', 'APIController@login');
+        $app->post('login', 'AuthController@login');
         
         $app->group(['middleware' => 'checkToken'], function () use ($app) {
             $app->get('atm', 'APIController@getMB');

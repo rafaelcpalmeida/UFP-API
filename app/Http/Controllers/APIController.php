@@ -47,33 +47,6 @@ class APIController extends Controller {
         return json_encode(["Version" => "1.0"]);
     }
 
-    public function login() {
-        $authToken = $this->getDataFromSOAPServer("Encrypt", array("Encrypt" => array("phrase" => "$this->username,$this->password")));
-
-        $sessionToken = $this->getDataFromSOAPServer("shakeHands", array("shakeHands" => array("input" => $authToken->EncryptResult)));
-
-        if (isset($sessionToken->shakeHandsResult) && $sessionToken->shakeHandsResult != "") {
-            if (!$this->hasUserDetails("number", $this->username)) {
-                $newUser = new $this->user;
-
-                $newUser->number = $this->username;
-                $newUser->password = $this->crypt->encrypt($sessionToken->shakeHandsResult);
-
-                $newUser->save();
-            } else {
-                $existingUser = $this->user->where("number", "=", $this->username)->first();
-
-                $existingUser->password = $this->crypt->encrypt($sessionToken->shakeHandsResult);
-
-                $existingUser->save();
-            }
-
-            return $this->encodeMessage(0, $this->crypt->encrypt(["number" => $this->username, "token" => $sessionToken->shakeHandsResult]));
-        }
-
-        return $this->encodeMessage(1, "Check your credentials");
-    }
-
     public function getMB() {
         $tokenData = (object) $this->decryptToken($this->apiToken);
 
@@ -234,34 +207,6 @@ class APIController extends Controller {
         }
         
         return $this->encodeMessage(1, "Not a valid token");
-    }
-
-    private function decryptToken($encryptedToken) {
-        try {
-            return $this->crypt->decrypt($encryptedToken);
-        } catch (DecryptException $e) {
-            return false;
-        }
-    }
-
-    private function getDataFromSOAPServer($function, $arguments) {
-        $client = new SoapClient("https://portal.ufp.pt/hi5.asmx?WSDL");
-
-        $result = $client->__soapCall($function, $arguments);
-        
-        return $result;
-    }
-
-    private function encodeMessage($status, $message) {
-        return json_encode(["status" => ($status == 0) ? "Ok" : "Error", "message" => $message]);
-    }
-
-    private function encryptMessage($message) {
-        return $this->crypt->encrypt($message);
-    }
-
-    private function hasUserDetails($detail, $userNumber) {
-        return $this->user->where($detail, "=", $userNumber)->exists();
     }
 
     private function hasUserMBDetails($userNumber) {
