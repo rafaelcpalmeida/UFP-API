@@ -30,13 +30,8 @@ class APIController extends Controller {
      *
      * @return void
      */
-    public function __construct(Encrypter $crypt, Request $request, User $user, Multibanco $mb, Assiduity $assiduity, FinalGrades $finalGrades, DetailedGrades $detailedGrades, Schedule $schedule) {
-        $this->crypt = $crypt;
-        $this->apiToken = $request->input("token");
-        $this->username = $request->input("username");
-        $this->password = $request->input("password");
+    public function __construct(User $user, Assiduity $assiduity, FinalGrades $finalGrades, DetailedGrades $detailedGrades, Schedule $schedule) {
         $this->user = $user;
-        $this->mb = $mb;
         $this->assiduity = $assiduity;
         $this->finalGrades = $finalGrades;
         $this->detailedGrades = $detailedGrades;
@@ -45,36 +40,6 @@ class APIController extends Controller {
 
     public function index() {
         return json_encode(["Version" => "1.0"]);
-    }
-
-    public function getMB() {
-        $tokenData = (object) $this->decryptToken($this->apiToken);
-
-        if($tokenData->token) {
-            if(!$this->hasUserMBDetails($tokenData->number)) {
-                $mbDetails = $this->getDataFromSOAPServer("atm", array("atm" => array("token" => $tokenData->token)));
-
-                if(property_exists(json_decode($mbDetails->atmResult), "Error"))
-                    return $this->encodeMessage(1, "Invalid token");
-                
-                if((isset(json_decode($mbDetails->atmResult)->atm[0]))) {
-                    $userMB = new $this->mb;
-
-                    $userMB->number = $tokenData->number;
-                    $userMB->mbDetails = json_decode($mbDetails->atmResult)->atm[0];
-
-                    $userMB->save();
-
-                    return $this->encodeMessage(0, $userMB->mbDetails);
-                }
-
-                return $this->encodeMessage(1, "No payment information found");
-            }
-
-            return $this->encodeMessage(0, $this->mb->where("number", "=", $tokenData->number)->first()->mbDetails);
-        }
-        
-        return $this->encodeMessage(1, "Couldn't decrypt sent token");
     }
 
     public function getAssiduity() {
