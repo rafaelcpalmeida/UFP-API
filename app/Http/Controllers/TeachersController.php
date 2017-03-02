@@ -7,8 +7,7 @@ use App\Multibanco;
 use App\Http\Controllers\SOAPController;
 use App\Http\Controllers\MessagesController;
 
-class MBController extends Controller {
-    private $soap;
+class TeachersController extends Controller {
     private $message;
     private $mb;
     private $apiToken;

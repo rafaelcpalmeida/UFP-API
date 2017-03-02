@@ -28,5 +28,14 @@ $app->group(['prefix' => 'api'], function () use ($app) {
             $app->get('grades/detailed', 'GradesController@getDetailedGrades');
             $app->get('schedule', 'ScheduleController@getSchedule');
         });
+
+        $app->group(['middleware' => 'checkAPIToken'], function () use ($app) {
+            /*$app->get('atm', 'MBController@getMB');
+            $app->get('assiduity', 'AssiduityController@getAssiduity');
+            $app->get('grades/final', 'GradesController@getFinalGrades');
+            $app->get('grades/detailed', 'GradesController@getDetailedGrades');
+            $app->get('schedule', 'ScheduleController@getSchedule');*/
+        });
+                
     });
 });

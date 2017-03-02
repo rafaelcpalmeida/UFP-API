@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\User;
 use App\Assiduity;
 use App\Http\Controllers\SOAPController;
 use App\Http\Controllers\MessagesController;
@@ -11,7 +10,6 @@ use App\Http\Controllers\MessagesController;
 class AssiduityController extends Controller {
     private $soap;
     private $message;
-    private $user;    
     private $assiduity;
     private $apiToken;
     
@@ -20,10 +18,9 @@ class AssiduityController extends Controller {
      *
      * @return void
      */
-    public function __construct(Request $request, SOAPController $soap, MessagesController $message, User $user, Assiduity $assiduity) {
+    public function __construct(Request $request, SOAPController $soap, MessagesController $message, Assiduity $assiduity) {
         $this->apiToken = $request->input("token");
         $this->soap = $soap;
-        $this->user = $user;
         $this->message = $message;
         $this->assiduity = $assiduity;
     }

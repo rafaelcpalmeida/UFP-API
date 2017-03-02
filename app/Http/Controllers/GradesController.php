@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\User;
 use App\FinalGrades;
 use App\DetailedGrades;
 use App\Http\Controllers\SOAPController;
@@ -12,7 +11,6 @@ use App\Http\Controllers\MessagesController;
 class GradesController extends Controller {   
     private $soap;
     private $message;
-    private $user;    
     private $finalGrades;
     private $detailedGrades;
     private $apiToken;
@@ -22,10 +20,9 @@ class GradesController extends Controller {
      *
      * @return void
      */
-    public function __construct(Request $request, SOAPController $soap, MessagesController $message, User $user, FinalGrades $finalGrades, DetailedGrades $detailedGrades) {
+    public function __construct(Request $request, SOAPController $soap, MessagesController $message, FinalGrades $finalGrades, DetailedGrades $detailedGrades) {
         $this->apiToken = $request->input("token");
         $this->soap = $soap;
-        $this->user = $user;
         $this->message = $message;
         $this->finalGrades = $finalGrades;
         $this->detailedGrades = $detailedGrades;

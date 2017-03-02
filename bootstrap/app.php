@@ -92,7 +92,8 @@ $app->singleton(
 */
 
 $app->routeMiddleware([
-    'checkToken' => App\Http\Middleware\AuthMiddleware::class
+    'checkToken' => App\Http\Middleware\AuthMiddleware::class,
+    'checkAPIToken' => App\Http\Middleware\APITokenMiddleware::class
 ]);
 
 $app->group(['namespace' => 'App\Http\Controllers'], function ($app) {
