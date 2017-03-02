@@ -7,4 +7,6 @@ use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
 class Teacher extends Eloquent
 {
     protected $collection = 'teachers';
+
+    protected $hidden = ['_id'];
 }

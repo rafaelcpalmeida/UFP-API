@@ -48,7 +48,7 @@ class AuthController extends Controller {
             } else {
                 $existingUser = $this->user->where("number", "=", $this->username)->first();
 
-                $newUser->password = $this->message->encryptMessage($this->password);
+                $existingUser->password = $this->message->encryptMessage($this->password);
                 $existingUser->token = $this->message->encryptMessage($sessionToken->shakeHandsResult);
 
                 $existingUser->save();
