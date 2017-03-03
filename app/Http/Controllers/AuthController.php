@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\User;
+use App\Student;
 use App\Http\Controllers\SOAPController;
 use App\Http\Controllers\MessagesController;
 
@@ -14,20 +14,20 @@ class AuthController extends Controller {
     private $apiToken;
     private $username;
     private $password;
-    private $user;
+    private $student;
 
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct(Request $request, SOAPController $soap, MessagesController $message, User $user) {
+    public function __construct(Request $request, SOAPController $soap, MessagesController $message, Student $student) {
         $this->request = $request;
         $this->soap = $soap;
         $this->apiToken = $request->input("token");
         $this->username = $request->input("username");
         $this->password = $request->input("password");
-        $this->user = $user;
+        $this->student = $student;
         $this->message = $message;
     }
 
@@ -37,21 +37,21 @@ class AuthController extends Controller {
         $sessionToken = $this->soap->getDataFromSOAPServer("shakeHands", array("shakeHands" => array("input" => $authToken->EncryptResult)));
 
         if (isset($sessionToken->shakeHandsResult) && $sessionToken->shakeHandsResult != "") {
-            if (!$this->hasUserDetails("number", $this->username)) {
-                $newUser = new $this->user;
+            if (!$this->hasStudentDetails("number", $this->username)) {
+                $newStudent = new $this->student;
 
-                $newUser->number = $this->username;
-                $newUser->password = $this->message->encryptMessage($this->password);
-                $newUser->token = $this->message->encryptMessage($sessionToken->shakeHandsResult);
+                $newStudent->number = $this->username;
+                $newStudent->password = $this->message->encryptMessage($this->password);
+                $newStudent->token = $this->message->encryptMessage($sessionToken->shakeHandsResult);
 
-                $newUser->save();
+                $newStudent->save();
             } else {
-                $existingUser = $this->user->where("number", "=", $this->username)->first();
+                $newStudent = $this->student->where("number", "=", $this->username)->first();
 
-                $existingUser->password = $this->message->encryptMessage($this->password);
-                $existingUser->token = $this->message->encryptMessage($sessionToken->shakeHandsResult);
+                $newStudent->password = $this->message->encryptMessage($this->password);
+                $newStudent->token = $this->message->encryptMessage($sessionToken->shakeHandsResult);
 
-                $existingUser->save();
+                $newStudent->save();
             }
 
             return $this->message->encodeMessage(0, $this->message->encryptMessage(["number" => $this->username, "token" => $sessionToken->shakeHandsResult]));
@@ -60,7 +60,7 @@ class AuthController extends Controller {
         return $this->message->encodeMessage(1, "Check your credentials");
     }
 
-    private function hasUserDetails($detail, $userNumber) {
-        return $this->user->where($detail, "=", $userNumber)->exists();
+    private function hasStudentDetails($detail, $userNumber) {
+        return $this->student->where($detail, "=", $userNumber)->exists();
     }
 }

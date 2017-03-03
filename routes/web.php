@@ -31,7 +31,9 @@ $app->group(['prefix' => 'api'], function () use ($app) {
         });
 
         $app->group(['middleware' => 'checkAPIToken'], function () use ($app) {
+            $app->get('teachers', 'TeacherController@getAllTeachers');
             $app->post('teacher/{alias}', 'TeacherController@storeTeacherDetails');
+            $app->get('students', 'StudentController@getAllStudents');
             /*$app->get('atm', 'MBController@getMB');
             $app->get('assiduity', 'AssiduityController@getAssiduity');
             $app->get('grades/final', 'GradesController@getFinalGrades');

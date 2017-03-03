@@ -22,6 +22,10 @@ class TeacherController extends Controller {
         $this->teacher = $teacher;
     }
 
+    public function getAllTeachers() {
+        return $this->message->encodeMessage(0, $this->teacher->all());
+    }
+
     public function getTeacherDetails($alias) {
         if(!$this->hasTeacherDetails($alias)) {
             $newTeacher = new $this->teacher;
@@ -29,7 +33,7 @@ class TeacherController extends Controller {
             $newTeacher->alias = $alias;
 
             $newTeacher->save();
-            
+
             return $this->message->encodeMessage(1, "No teacher information found");
         }
 
