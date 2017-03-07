@@ -13,7 +13,6 @@ class AuthController extends Controller {
     private $apiToken;
     private $username;
     private $password;
-    private $student;
 
     /**
      * Create a new controller instance.

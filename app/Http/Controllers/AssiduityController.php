@@ -9,7 +9,6 @@ use App\Http\Controllers\MessagesController;
 class AssiduityController extends Controller {
     private $soap;
     private $message;
-    private $assiduity;
     private $apiToken;
     
     /**
