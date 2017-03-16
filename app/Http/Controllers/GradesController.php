@@ -9,7 +9,6 @@ use App\Http\Controllers\MessagesController;
 class GradesController extends Controller {   
     private $soap;
     private $message;
-    private $finalGrades;
     private $detailedGrades;
     private $apiToken;
 
@@ -22,7 +21,6 @@ class GradesController extends Controller {
         $this->apiToken = $request->input("token");
         $this->soap = $soap;
         $this->message = $message;
-        $this->finalGrades = $finalGrades;
     }
 
     public function getFinalGrades() {
@@ -36,7 +34,7 @@ class GradesController extends Controller {
             
             $finalGrades = $this->parseFinalGrades(json_decode($gradesAux->gradeResult)->grade->definitivo);
 
-            return (!empty($finalGrades)) ? $this->message->encodeMessage(0, $userFinalGrades->grades) : $this->message->encodeMessage(0, $userFinalGrades->grades);
+            return (!empty($finalGrades)) ? $this->message->encodeMessage(0, $finalGrades) : $this->message->encodeMessage(1, "No final grades information found");
         }
 
         return $this->message->encodeMessage(1, "Couldn't decrypt sent token");
@@ -53,7 +51,7 @@ class GradesController extends Controller {
 
             $detailedGrades = $this->parseDetailedGrades(json_decode($gradesAux->gradeResult)->grade->provisorio->parciais);
             
-            return (!empty($detailedGrades)) ? $this->message->encodeMessage(0, $userDetailedGrades->grades) : $this->message->encodeMessage(1, "No detailed grades information found");
+            return (!empty($detailedGrades)) ? $this->message->encodeMessage(0, $detailedGrades) : $this->message->encodeMessage(1, "No detailed grades information found");
         }
 
         return $this->message->encodeMessage(1, "Couldn't decrypt sent token");
