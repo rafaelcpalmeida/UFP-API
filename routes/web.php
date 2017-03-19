@@ -27,7 +27,6 @@ $app->group(['prefix' => 'api'], function () use ($app) {
             $app->get('grades/final', 'GradesController@getFinalGrades');
             $app->get('grades/detailed', 'GradesController@getDetailedGrades');
             $app->get('schedule', 'ScheduleController@getSchedule');
-            $app->get('teacher/{alias}', 'TeacherController@getTeacherDetails');
         });
     });
 });
