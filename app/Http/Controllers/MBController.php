@@ -31,7 +31,7 @@ class MBController extends Controller {
             if(property_exists(json_decode($mbDetails->atmResult), "Error"))
                 return $this->message->encodeMessage(1, "Invalid token");
 
-            return (isset(json_decode($mbDetails->atmResult)->atm[0])) ? $this->message->encodeMessage(0, $userMB->mbDetails) : $this->message->encodeMessage(1, "No payment information found");
+            return (isset(json_decode($mbDetails->atmResult)->atm[0])) ? $this->message->encodeMessage(0, json_decode($mbDetails->atmResult)->atm[0]) : $this->message->encodeMessage(1, "No payment information found");
         }
         
         return $this->message->encodeMessage(1, "Couldn't decrypt sent token");
