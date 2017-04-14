@@ -71,7 +71,7 @@ class GradesController extends Controller {
         $gradesAux = array();
 
         foreach($grades as $grade) {
-            $gradesAux[$grade->Unidade][$grade->AnoLectivo][] = array("unidade" => $grade->Unidade, "elemento" => $grade->Elemento, "nota" => $grade->Nota);
+            $gradesAux[$grade->AnoLectivo][$grade->Unidade][] = array("unidade" => $grade->Unidade, "elemento" => $grade->Elemento, "nota" => $grade->Nota);
         }
 
         return $gradesAux;
