@@ -10,7 +10,7 @@ In order to run the API in your own server:
 - Go to the downloaded directory
 - Execute `composer install`
 - Change the file `.env.example` to `.env` and make sure to fill the `APP_KEY` field.
-- Your API instance should be running
+- Your API instance should be ready to deploy / run
 
 # Licença
 
