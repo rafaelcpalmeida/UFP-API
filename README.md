@@ -2,7 +2,7 @@
 The following repository contains the code for UFP (University Fernando Pessoa) API, which is a REST API written in PHP using [Lumen] micro-framework.
 
 # Purpose 
-The API was developed to fuel the [iOS] version of University Fernando Pessoa. The API can be used by any HTTP Client. Documentation can be found here [here]. 
+The API was developed to fuel the [iOS] version of University Fernando Pessoa app. The API can be used by any HTTP Client. Documentation can be found here [here]. 
 
 ## Instalation
 In order to run the API in your own server:
