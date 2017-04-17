@@ -25,7 +25,7 @@ class AssiduityController extends Controller {
     public function getAssiduity() {
         $tokenData = (object) $this->message->decryptToken($this->apiToken);
 
-        if($tokenData->token) {
+        if(isset($tokenData->token)) {
             $assiduityAux = $this->soap->getDataFromSOAPServer("assiduity", array("assiduity" => array("token" => $tokenData->token)));
 
             if(property_exists(json_decode($assiduityAux->assiduityResult), "Error"))

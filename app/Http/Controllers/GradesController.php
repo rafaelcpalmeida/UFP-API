@@ -26,7 +26,7 @@ class GradesController extends Controller {
     public function getFinalGrades() {
         $tokenData = (object) $this->message->decryptToken($this->apiToken);
 
-        if($tokenData->token) {
+        if(isset($tokenData->token)) {
             $gradesAux = $this->soap->getDataFromSOAPServer("grade", array("grade" => array("token" => $tokenData->token)));
             
             if(property_exists(json_decode($gradesAux->gradeResult), "Error"))
@@ -43,7 +43,7 @@ class GradesController extends Controller {
     public function getDetailedGrades() {
         $tokenData = (object) $this->message->decryptToken($this->apiToken);
 
-        if($tokenData->token) {
+        if(isset($tokenData->token)) {
             $gradesAux = $this->soap->getDataFromSOAPServer("grade", array("grade" => array("token" => $tokenData->token)));
 
             if(property_exists(json_decode($gradesAux->gradeResult), "Error"))

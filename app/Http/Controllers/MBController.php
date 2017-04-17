@@ -25,7 +25,7 @@ class MBController extends Controller {
     public function getMB() {
         $tokenData = (object) $this->message->decryptToken($this->apiToken);
 
-        if($tokenData->token) {
+        if(isset($tokenData->token)) {
             $mbDetails = $this->soap->getDataFromSOAPServer("atm", array("atm" => array("token" => $tokenData->token)));
 
             if(property_exists(json_decode($mbDetails->atmResult), "Error"))

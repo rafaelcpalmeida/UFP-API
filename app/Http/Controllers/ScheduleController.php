@@ -25,7 +25,7 @@ class ScheduleController extends Controller {
     public function getSchedule() {
         $tokenData = (object) $this->message->decryptToken($this->apiToken);
 
-        if($tokenData->token) {
+        if(isset($tokenData->token)) {
             $scheduleAux = $this->soap->getDataFromSOAPServer("schedule", array("schedule" => array("token" => $tokenData->token)));
 
             if(property_exists(json_decode($scheduleAux->scheduleResult), "Error"))
@@ -34,7 +34,7 @@ class ScheduleController extends Controller {
             return (!empty($this->parseSchedule(json_decode($scheduleAux->scheduleResult)->schedule))) ? $this->message->encodeMessage(0, $this->parseSchedule(json_decode($scheduleAux->scheduleResult)->schedule)) : $this->message->encodeMessage(1, "No schedule information found");
         }
         
-        return $this->message->encodeMessage(1, "Not a valid token");
+        return $this->message->encodeMessage(1, "Couldn't decrypt sent token");
     }
 
     private function parseSchedule($schedule) {
