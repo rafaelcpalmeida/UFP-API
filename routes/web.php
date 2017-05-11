@@ -21,11 +21,14 @@ $app->group(['prefix' => 'api'], function () use ($app) {
 
         $app->post('login', 'AuthController@login');
         
+        $app->get('queue', 'QueueController@getQueue');
+        
         $app->group(['middleware' => 'checkToken'], function () use ($app) {
-            $app->get('atm', 'MBController@getMB');
             $app->get('assiduity', 'AssiduityController@getAssiduity');
-            $app->get('grades/final', 'GradesController@getFinalGrades');
+            $app->get('atm', 'MBController@getMB');
             $app->get('grades/detailed', 'GradesController@getDetailedGrades');
+            $app->get('grades/detailed', 'GradesController@getDetailedGrades');
+            $app->get('grades/final', 'GradesController@getFinalGrades');
             $app->get('schedule', 'ScheduleController@getSchedule');
         });
     });
