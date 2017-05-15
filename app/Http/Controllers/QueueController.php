@@ -16,7 +16,6 @@ class QueueController extends Controller {
      * @return void
      */
     public function __construct(Request $request, CURLController $curl, MessagesController $message) {
-        $this->apiToken = $request->input("token");
         $this->curl = $curl;
         $this->message = $message;
     }
