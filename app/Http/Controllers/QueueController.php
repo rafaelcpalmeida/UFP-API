@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\CURLController;
 use App\Http\Controllers\MessagesController;
 
@@ -15,7 +14,7 @@ class QueueController extends Controller {
      *
      * @return void
      */
-    public function __construct(Request $request, CURLController $curl, MessagesController $message) {
+    public function __construct(CURLController $curl, MessagesController $message) {
         $this->curl = $curl;
         $this->message = $message;
     }
