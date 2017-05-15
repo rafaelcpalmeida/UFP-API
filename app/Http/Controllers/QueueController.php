@@ -9,7 +9,6 @@ use App\Http\Controllers\MessagesController;
 class QueueController extends Controller {
     private $curl;
     private $message;
-    private $apiToken;
     
     /**
      * Create a new controller instance.
