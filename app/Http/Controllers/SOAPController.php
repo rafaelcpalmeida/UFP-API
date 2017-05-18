@@ -12,11 +12,9 @@ class SOAPController extends Controller {
      */
     public function __construct() {}
     
-    public function getDataFromSOAPServer($function, $arguments) {
+    public function getDataFromSOAPServer($function, $arguments = array()) {
         $client = new SoapClient("https://portal.ufp.pt/hi5.asmx?WSDL");
 
-        $result = $client->__soapCall($function, $arguments);
-        
-        return $result;
+        return $client->__soapCall($function, $arguments);
     }
 }
