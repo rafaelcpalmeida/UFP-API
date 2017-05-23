@@ -32,10 +32,18 @@ class AssiduityController extends Controller {
                 return $this->message->encodeMessage(1, "Invalid token");
 
             $assiduity = array();
-
+            
             foreach(json_decode($assiduityAux->assiduityResult)->assiduity as $detail) {
                 $assiduity[$detail->Unidade][] = array("tipo" => $detail->Tipo, "assiduidade" => $detail->Assiduidade);
             }
+
+            // In order to maintain the order when the endpoint is called we must creat an array of objects
+            $json = [];
+            foreach($assiduity as $key => $value) {
+                $json[] = [$key => $value];
+            }
+
+            $assiduity = $json;
 
             return (!empty($assiduity)) ? $this->message->encodeMessage(0, $assiduity) : $this->message->encodeMessage(1, "No assiduity information found");
         }
