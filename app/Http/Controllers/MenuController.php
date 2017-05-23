@@ -25,7 +25,7 @@ class MenuController extends Controller {
         // We need to wrap the YYYY-MM-DD with "" and we need to remove all new line chars otherwise the JSON will be invalid
         $menuJSON = str_replace(array("\n","\r"), '', preg_replace('/((\d){4}-(\d){2}-(\d){2})/', '"$1"', $menuAux->menuResult));
 
-        return json_encode(($language == "pt") ? $this->parseMenu(json_decode($menuJSON)->UnidadeEmenta[0]->Ementa) : $this->parseMenu(json_decode($menuJSON)->UnidadeEmenta[0]->Menu));
+        return (!empty($this->parseMenu(json_decode($menuJSON)->UnidadeEmenta[0]->Menu))) ? $this->message->encodeMessage(0, ($language == "pt") ? $this->parseMenu(json_decode($menuJSON)->UnidadeEmenta[0]->Ementa) : $this->parseMenu(json_decode($menuJSON)->UnidadeEmenta[0]->Menu)) : $this->message->encodeMessage(1, "No menu information found");
     }
 
     private function parseMenu($data) {
