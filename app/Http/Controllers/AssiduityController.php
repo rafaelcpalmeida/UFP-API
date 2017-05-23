@@ -37,7 +37,7 @@ class AssiduityController extends Controller {
                 $assiduity[$detail->Unidade][] = array("tipo" => $detail->Tipo, "assiduidade" => $detail->Assiduidade);
             }
 
-            return (!empty($assiduity)) ? $this->message->encodeMessage(0, $assiduity) : $this->encodeMessage(1, "No assiduity information found");
+            return (!empty($assiduity)) ? $this->message->encodeMessage(0, $assiduity) : $this->message->encodeMessage(1, "No assiduity information found");
         }
 
         return $this->message->encodeMessage(1, "Couldn't decrypt sent token");
