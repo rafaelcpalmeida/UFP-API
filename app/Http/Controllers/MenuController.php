@@ -44,7 +44,7 @@ class MenuController extends Controller {
 
             $pattern = "/(?<=$days[$i])(?:.*?)(?=$end)/";
             
-            preg_match($pattern, $data, $days[$days[$i]]);
+            preg_match($pattern, $data, $days[str_replace(":", "", $days[$i])]);
             unset($days[$i]);
         }
 
