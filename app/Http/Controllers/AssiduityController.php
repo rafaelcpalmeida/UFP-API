@@ -37,7 +37,7 @@ class AssiduityController extends Controller {
                 $assiduity[$detail->Unidade][] = array("tipo" => $detail->Tipo, "assiduidade" => $detail->Assiduidade);
             }
 
-            // In order to maintain the order when the endpoint is called we must creat an array of objects
+            // In order to maintain the order when the endpoint is called we must create an array of objects
             $json = [];
             foreach($assiduity as $key => $value) {
                 $json[] = [$key => $value];
