@@ -20,12 +20,23 @@ class MenuController extends Controller {
     }
 
     public function getMenu($language) {
+        $parsedMenu = [];
+
+        if ($language !== "pt" && $language != "en")
+            return $this->message->encodeMessage(1, "Invalid option");
+
         $menuAux = $this->soap->getDataFromSOAPServer("menu");
 
         // We need to wrap the YYYY-MM-DD with "" and we need to remove all new line chars otherwise the JSON will be invalid
         $menuJSON = str_replace(array("\n","\r"), '', preg_replace('/((\d){4}-(\d){2}-(\d){2})/', '"$1"', $menuAux->menuResult));
 
-        $parsedMenu = ($language == "pt") ? $this->parseMenu(json_decode($menuJSON)->UnidadeEmenta[0]->Ementa) : $this->parseMenu(json_decode($menuJSON)->UnidadeEmenta[0]->Menu);
+        foreach (json_decode($menuJSON)->UnidadeEmenta as $menuJSONAux) {
+            if ($language == "pt") {
+                $parsedMenu[$menuJSONAux->Unidade] = $this->parseMenu($menuJSONAux->Ementa);
+            } else {
+                $parsedMenu[$menuJSONAux->Unidade] = $this->parseMenu($menuJSONAux->Menu);
+            }
+        }
 
         return (!empty($parsedMenu)) ? $this->message->encodeMessage(0, $parsedMenu) : $this->message->encodeMessage(1, "No menu information found");
     }
