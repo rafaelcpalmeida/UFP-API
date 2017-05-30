@@ -34,7 +34,9 @@ class ExamController extends Controller {
             $exams = array();
             
             foreach(json_decode($examAux->exameResult)->Exames as $exam) {
-                $exams[$exam->Disciplina][] = array("data" => $exam->Data, "curso" => $exam->Curso, "tipologia" => $exam->Tipologia, "sala" => explode("<br>", $exam->Sala), "responsavel" => explode("<br>", $exam->Responsavel));
+                preg_match('/(?:(\d){4}-(\d){2}-(\d){2})/', $exam->Data, $date);
+                preg_match('/(?:(\d){2}:(\d){2})/', $exam->Data, $hour);
+                $exams[$date[0]][] = array("subject" => $exam->Disciplina, "time" => $hour[0], "course" => $exam->Curso, "typology" => $exam->Tipologia, "room" => explode("<br>", $exam->Sala), "assignee" => explode("<br>", $exam->Responsavel));
             }
 
             // In order to maintain the order when the endpoint is called we must create an array of objects
