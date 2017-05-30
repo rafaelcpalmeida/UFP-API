@@ -23,6 +23,7 @@ $app->group(['prefix' => 'api'], function () use ($app) {
 
         $app->get('queue', 'QueueController@getQueue');
         $app->get('menu/{language}', 'MenuController@getMenu');
+        $app->get('teachers/{option}', 'TeacherController@getTeachers');
         
         $app->group(['middleware' => 'checkToken'], function () use ($app) {
             $app->get('assiduity', 'AssiduityController@getAssiduity');
