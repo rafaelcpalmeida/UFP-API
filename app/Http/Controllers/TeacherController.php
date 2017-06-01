@@ -49,10 +49,13 @@ class TeacherController extends Controller {
     private function parseTeacherInformation($info) {
         $teacherInfo = [];
         $atendimentoAux = [];
+        $lastUpdated = "";
+        $teacherEmail = "";
 
         $nome = $info->find('b')->text;
 
         for($i = 0; $i < count($info->find('p')); $i++) {
+            try {
             if ($info->find('p')[$i]->text == "Ocupação Semanal do Docente") {
                 $aux = 0;
                 for($j = ($i+1); $j < count($info->find('p')); $j++) {
@@ -75,6 +78,7 @@ class TeacherController extends Controller {
                     }
                 }
             }
+            } catch(Exception $ex) {}
         }
 
         $teacherInfo = array("name" => $nome, "schedule" => $atendimentoAux, "last_update" => $lastUpdated, "email" => $teacherEmail);
