@@ -42,10 +42,8 @@ class TeacherController extends Controller {
         $this->dom = new Dom();
 
         $this->dom->load($detalhesDocente);
-
-        return json_encode($this->parseTeacherInformation($this->dom));
-
-        return (!empty($parsedMenu)) ? $this->message->encodeMessage(0, $parsedMenu) : $this->message->encodeMessage(1, "No menu information found");
+        
+        return (!empty($this->parseTeacherInformation($this->dom))) ? $this->message->encodeMessage(0, $this->parseTeacherInformation($this->dom)) : $this->message->encodeMessage(1, "No menu information found");
     }
 
     private function parseTeacherInformation($info) {
