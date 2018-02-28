@@ -29,7 +29,7 @@ class AssiduityController extends Controller {
             $assiduityAux = $this->soap->getDataFromSOAPServer("assiduity", array("assiduity" => array("token" => $tokenData->token)));
             
             if(property_exists(json_decode($assiduityAux->assiduityResult), "Error"))
-                return $this->message->encodeMessage(1, "Invalid token");
+                return $this->message->encodeMessage(401, "Invalid token");
 
             $assiduity = array();
             
@@ -45,9 +45,9 @@ class AssiduityController extends Controller {
 
             $assiduity = $json;
 
-            return (!empty($assiduity)) ? $this->message->encodeMessage(0, $assiduity) : $this->message->encodeMessage(1, "No assiduity information found");
+            return (!empty($assiduity)) ? $this->message->encodeMessage(200, $assiduity) : $this->message->encodeMessage(404, "No assiduity information found");
         }
 
-        return $this->message->encodeMessage(1, "Couldn't decrypt sent token");
+        return $this->message->encodeMessage(401, "Couldn't decrypt sent token");
     }
 }

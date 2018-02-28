@@ -23,7 +23,7 @@ class QueueController extends Controller {
         $queue = $this->curl->getDataFromcURLRequest("http://senha.ufp.pt/Home/getFilaMin");
 
         if($queue["status"] != 200) {
-            return $this->message->encodeMessage(1, "An error has occurred! Please try again.");
+            return $this->message->encodeMessage(500, "An error has occurred! Please try again.");
         }
 
         $queueDetails = [];
@@ -35,6 +35,6 @@ class QueueController extends Controller {
             $queueDetails[$queueDetail->SERVICE_CODE]["waiting"] = $queueDetail->WAIT;
         }
 
-        return $this->message->encodeMessage(0, $queueDetails);
+        return $this->message->encodeMessage(200, $queueDetails);
     }
 }

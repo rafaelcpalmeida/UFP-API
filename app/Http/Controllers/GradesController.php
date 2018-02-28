@@ -30,14 +30,14 @@ class GradesController extends Controller {
             $gradesAux = $this->soap->getDataFromSOAPServer("grade", array("grade" => array("token" => $tokenData->token)));
             
             if(property_exists(json_decode($gradesAux->gradeResult), "Error"))
-                return $this->message->encodeMessage(1, "Invalid token");
+                return $this->message->encodeMessage(401, "Invalid token");
             
             $finalGrades = $this->parseFinalGrades(json_decode($gradesAux->gradeResult)->grade->definitivo);
 
-            return (!empty($finalGrades)) ? $this->message->encodeMessage(0, $finalGrades) : $this->message->encodeMessage(1, "No final grades information found");
+            return (!empty($finalGrades)) ? $this->message->encodeMessage(200, $finalGrades) : $this->message->encodeMessage(404, "No final grades information found");
         }
 
-        return $this->message->encodeMessage(1, "Couldn't decrypt sent token");
+        return $this->message->encodeMessage(301, "Couldn't decrypt sent token");
     }
 
     public function getDetailedGrades() {
@@ -47,14 +47,14 @@ class GradesController extends Controller {
             $gradesAux = $this->soap->getDataFromSOAPServer("grade", array("grade" => array("token" => $tokenData->token)));
 
             if(property_exists(json_decode($gradesAux->gradeResult), "Error"))
-                return $this->message->encodeMessage(1, "Invalid token");
+                return $this->message->encodeMessage(401, "Invalid token");
 
             $detailedGrades = $this->parseDetailedGrades(json_decode($gradesAux->gradeResult)->grade->provisorio->parciais);
             
-            return (!empty($detailedGrades)) ? $this->message->encodeMessage(0, $detailedGrades) : $this->message->encodeMessage(1, "No detailed grades information found");
+            return (!empty($detailedGrades)) ? $this->message->encodeMessage(200, $detailedGrades) : $this->message->encodeMessage(404, "No detailed grades information found");
         }
 
-        return $this->message->encodeMessage(1, "Couldn't decrypt sent token");
+        return $this->message->encodeMessage(401, "Couldn't decrypt sent token");
     }
 
     private function parseFinalGrades($grades) {

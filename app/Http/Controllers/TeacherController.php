@@ -30,7 +30,7 @@ class TeacherController extends Controller {
                 $docentes[] = array("nome" => $docente->Docente, "sigla" => $docente->Sigla);
             }
 
-            return $this->message->encodeMessage(0, $docentes);
+            return $this->message->encodeMessage(200, $docentes);
         }
 
         $docente = [];
@@ -43,7 +43,7 @@ class TeacherController extends Controller {
 
         $this->dom->load($detalhesDocente);
         
-        return (!empty($this->parseTeacherInformation($this->dom))) ? $this->message->encodeMessage(0, $this->parseTeacherInformation($this->dom)) : $this->message->encodeMessage(1, "No menu information found");
+        return (!empty($this->parseTeacherInformation($this->dom))) ? $this->message->encodeMessage(200, $this->parseTeacherInformation($this->dom)) : $this->message->encodeMessage(404, "No teacher information found");
     }
 
     private function parseTeacherInformation($info) {

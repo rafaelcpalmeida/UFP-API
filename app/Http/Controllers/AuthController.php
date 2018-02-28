@@ -33,6 +33,6 @@ class AuthController extends Controller {
 
         $sessionToken = $this->soap->getDataFromSOAPServer("shakeHands", array("shakeHands" => array("input" => $authToken->EncryptResult)));
         
-        return ((isset($sessionToken->shakeHandsResult) && $sessionToken->shakeHandsResult != "")) ? $this->message->encodeMessage(0, $this->message->encryptMessage(["number" => $this->username, "token" => $sessionToken->shakeHandsResult])) : $this->message->encodeMessage(1, "Check your credentials");
+        return ((isset($sessionToken->shakeHandsResult) && $sessionToken->shakeHandsResult != "")) ? $this->message->encodeMessage(200, $this->message->encryptMessage(["number" => $this->username, "token" => $sessionToken->shakeHandsResult])) : $this->message->encodeMessage(401, "Check your credentials");
     }
 }

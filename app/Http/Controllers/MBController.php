@@ -29,11 +29,11 @@ class MBController extends Controller {
             $mbDetails = $this->soap->getDataFromSOAPServer("atm", array("atm" => array("token" => $tokenData->token)));
 
             if(property_exists(json_decode($mbDetails->atmResult), "Error"))
-                return $this->message->encodeMessage(1, "Invalid token");
+                return $this->message->encodeMessage(401, "Invalid token");
 
-            return (isset(json_decode($mbDetails->atmResult)->atm[0])) ? $this->message->encodeMessage(0, json_decode($mbDetails->atmResult)->atm[0]) : $this->message->encodeMessage(1, "No payment information found");
+            return (isset(json_decode($mbDetails->atmResult)->atm[0])) ? $this->message->encodeMessage(200, json_decode($mbDetails->atmResult)->atm[0]) : $this->message->encodeMessage(404, "No payment information found");
         }
         
-        return $this->message->encodeMessage(1, "Couldn't decrypt sent token");
+        return $this->message->encodeMessage(401, "Couldn't decrypt sent token");
     }
 }

@@ -23,7 +23,7 @@ class MenuController extends Controller {
         $parsedMenu = [];
 
         if ($language !== "pt" && $language != "en")
-            return $this->message->encodeMessage(1, "Invalid option");
+            return $this->message->encodeMessage(400, "Invalid option");
 
         $menuAux = $this->soap->getDataFromSOAPServer("menu");
 
@@ -38,7 +38,7 @@ class MenuController extends Controller {
             }
         }
 
-        return (!empty($parsedMenu)) ? $this->message->encodeMessage(0, $parsedMenu) : $this->message->encodeMessage(1, "No menu information found");
+        return (!empty($parsedMenu)) ? $this->message->encodeMessage(200, $parsedMenu) : $this->message->encodeMessage(404, "No menu information found");
     }
 
     private function parseMenu($data) {

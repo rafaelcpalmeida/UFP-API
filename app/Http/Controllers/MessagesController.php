@@ -26,7 +26,7 @@ class MessagesController extends Controller {
     }
 
     public function encodeMessage($status, $message) {
-        return json_encode(["status" => ($status == 0) ? "Ok" : "Error", "message" => $message]);
+        return response(json_encode(["status" => ($status == 200) ? "Ok" : "Error", "message" => $message]), $status)->header('Content-Type', 'application/json');
     }
 
     public function encryptMessage($message) {

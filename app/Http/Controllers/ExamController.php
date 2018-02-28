@@ -29,10 +29,10 @@ class ExamController extends Controller {
             $examAux = $this->soap->getDataFromSOAPServer("exame", array("exame" => array("token" => $tokenData->token)));
 
             if (json_decode($examAux->exameResult) == NULL)
-                return $this->message->encodeMessage(1, "No exam information found");
+                return $this->message->encodeMessage(404, "No exam information found");
             
             if(property_exists(json_decode($examAux->exameResult), "Error"))
-                return $this->message->encodeMessage(1, "Invalid token");
+                return $this->message->encodeMessage(401, "Invalid token");
 
             $exams = array();
             
@@ -50,9 +50,9 @@ class ExamController extends Controller {
 
             $exams = $json;
 
-            return (!empty($exams)) ? $this->message->encodeMessage(0, $exams) : $this->message->encodeMessage(1, "No exam information found");
+            return (!empty($exams)) ? $this->message->encodeMessage(200, $exams) : $this->message->encodeMessage(404, "No exam information found");
         }
 
-        return $this->message->encodeMessage(1, "Couldn't decrypt sent token");
+        return $this->message->encodeMessage(401, "Couldn't decrypt sent token");
     }
 }
