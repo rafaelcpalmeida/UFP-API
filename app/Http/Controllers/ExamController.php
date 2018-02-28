@@ -28,6 +28,9 @@ class ExamController extends Controller {
         if(isset($tokenData->token)) {
             $examAux = $this->soap->getDataFromSOAPServer("exame", array("exame" => array("token" => $tokenData->token)));
 
+            if (json_decode($examAux->exameResult) == NULL)
+                return $this->message->encodeMessage(1, "No exam information found");
+            
             if(property_exists(json_decode($examAux->exameResult), "Error"))
                 return $this->message->encodeMessage(1, "Invalid token");
 
