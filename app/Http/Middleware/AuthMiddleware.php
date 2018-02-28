@@ -15,7 +15,7 @@ class AuthMiddleware
      */
     public function handle($request, Closure $next)
     {
-        if(empty($request->input('token'))) {
+        if (empty($request->input('token'))) {
             abort(403, 'Access denied');
         }
         

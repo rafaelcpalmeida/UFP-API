@@ -15,7 +15,7 @@ $app->get('/', 'APIController@index');
 
 $app->group(['prefix' => 'api'], function () use ($app) {
     $app->group(['prefix' => 'v1'], function () use ($app) {
-        $app->get('/', function ()    {
+        $app->get('/', function () {
             return json_encode(["Version" => "1.0"]);
         });
 

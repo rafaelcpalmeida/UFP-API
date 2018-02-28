@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\SOAPController;
 use App\Http\Controllers\MessagesController;
 
-class ExamController extends Controller {
+class ExamController extends Controller
+{
     private $soap;
     private $message;
     private $apiToken;
@@ -16,27 +17,31 @@ class ExamController extends Controller {
      *
      * @return void
      */
-    public function __construct(Request $request, SOAPController $soap, MessagesController $message) {
+    public function __construct(Request $request, SOAPController $soap, MessagesController $message)
+    {
         $this->apiToken = $request->input("token");
         $this->soap = $soap;
         $this->message = $message;
     }
 
-    public function getExams() {
+    public function getExams()
+    {
         $tokenData = (object) $this->message->decryptToken($this->apiToken);
 
-        if(isset($tokenData->token)) {
+        if (isset($tokenData->token)) {
             $examAux = $this->soap->getDataFromSOAPServer("exame", array("exame" => array("token" => $tokenData->token)));
 
-            if (json_decode($examAux->exameResult) == NULL)
+            if (json_decode($examAux->exameResult) == null) {
                 return $this->message->encodeMessage(404, "No exam information found");
+            }
             
-            if(property_exists(json_decode($examAux->exameResult), "Error"))
+            if (property_exists(json_decode($examAux->exameResult), "Error")) {
                 return $this->message->encodeMessage(401, "Invalid token");
+            }
 
             $exams = array();
             
-            foreach(json_decode($examAux->exameResult)->Exames as $exam) {
+            foreach (json_decode($examAux->exameResult)->Exames as $exam) {
                 preg_match('/(?:(\d){4}-(\d){2}-(\d){2})/', $exam->Data, $date);
                 preg_match('/(?:(\d){2}:(\d){2})/', $exam->Data, $hour);
                 $exams[$date[0]][] = array("subject" => $exam->Disciplina, "time" => $hour[0], "course" => $exam->Curso, "typology" => $exam->Tipologia, "room" => explode("<br>", $exam->Sala), "assignee" => explode("<br>", $exam->Responsavel));
@@ -44,7 +49,7 @@ class ExamController extends Controller {
 
             // In order to maintain the order when the endpoint is called we must create an array of objects
             $json = [];
-            foreach($exams as $key => $value) {
+            foreach ($exams as $key => $value) {
                 $json[] = [$key => $value];
             }
 

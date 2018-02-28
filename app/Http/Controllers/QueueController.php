@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\CURLController;
 use App\Http\Controllers\MessagesController;
 
-class QueueController extends Controller {
+class QueueController extends Controller
+{
     private $curl;
     private $message;
     
@@ -14,15 +15,17 @@ class QueueController extends Controller {
      *
      * @return void
      */
-    public function __construct(CURLController $curl, MessagesController $message) {
+    public function __construct(CURLController $curl, MessagesController $message)
+    {
         $this->curl = $curl;
         $this->message = $message;
     }
 
-    public function getQueue() {
+    public function getQueue()
+    {
         $queue = $this->curl->getDataFromcURLRequest("http://senha.ufp.pt/Home/getFilaMin");
 
-        if($queue["status"] != 200) {
+        if ($queue["status"] != 200) {
             return $this->message->encodeMessage(500, "An error has occurred! Please try again.");
         }
 

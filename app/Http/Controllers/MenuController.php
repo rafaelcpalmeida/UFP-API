@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\SOAPController;
 use App\Http\Controllers\MessagesController;
 
-class MenuController extends Controller {
+class MenuController extends Controller
+{
     private $soap;
     private $message;
     
@@ -14,16 +15,19 @@ class MenuController extends Controller {
      *
      * @return void
      */
-    public function __construct(SOAPController $soap, MessagesController $message) {
+    public function __construct(SOAPController $soap, MessagesController $message)
+    {
         $this->soap = $soap;
         $this->message = $message;
     }
 
-    public function getMenu($language) {
+    public function getMenu($language)
+    {
         $parsedMenu = [];
 
-        if ($language !== "pt" && $language != "en")
+        if ($language !== "pt" && $language != "en") {
             return $this->message->encodeMessage(400, "Invalid option");
+        }
 
         $menuAux = $this->soap->getDataFromSOAPServer("menu");
 
@@ -41,7 +45,8 @@ class MenuController extends Controller {
         return (!empty($parsedMenu)) ? $this->message->encodeMessage(200, $parsedMenu) : $this->message->encodeMessage(404, "No menu information found");
     }
 
-    private function parseMenu($data) {
+    private function parseMenu($data)
+    {
         $days = [];
 
         preg_match_all("/(?:[A-Z]){3}:/", $data, $days);
@@ -50,7 +55,7 @@ class MenuController extends Controller {
 
         $num = count($days);
 
-        for($i = 0; $i < $num; $i++) {
+        for ($i = 0; $i < $num; $i++) {
             $end = ($i == ($num-1)) ? "$" : $days[$i+1];
 
             $pattern = "/(?<=$days[$i])(?:.*?)(?=$end)/";
@@ -61,7 +66,7 @@ class MenuController extends Controller {
 
         // In order to maintain the order when the endpoint is called we must create an array of objects
         $json = [];
-        foreach($days as $key => $value) {
+        foreach ($days as $key => $value) {
             $json[] = [$key => $value];
         }
 

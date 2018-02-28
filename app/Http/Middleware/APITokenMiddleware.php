@@ -15,7 +15,7 @@ class APITokenMiddleware
      */
     public function handle($request, Closure $next)
     {
-        if(empty($request->input('api_token'))) {
+        if (empty($request->input('api_token'))) {
             abort(403, 'Access denied');
         }
         

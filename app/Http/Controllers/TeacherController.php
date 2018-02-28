@@ -6,7 +6,8 @@ use App\Http\Controllers\SOAPController;
 use App\Http\Controllers\MessagesController;
 use PHPHtmlParser\Dom;
 
-class TeacherController extends Controller {
+class TeacherController extends Controller
+{
     private $dom;
     private $soap;
     private $message;
@@ -16,13 +17,15 @@ class TeacherController extends Controller {
      *
      * @return void
      */
-    public function __construct(SOAPController $soap, MessagesController $message, Dom $dom) {
+    public function __construct(SOAPController $soap, MessagesController $message, Dom $dom)
+    {
         $this->soap = $soap;
         $this->message = $message;
         $this->dom = $dom;
     }
 
-    public function getTeachers($option) {
+    public function getTeachers($option)
+    {
         if ($option == "all") {
             $docentes = [];
 
@@ -46,7 +49,8 @@ class TeacherController extends Controller {
         return (!empty($this->parseTeacherInformation($this->dom))) ? $this->message->encodeMessage(200, $this->parseTeacherInformation($this->dom)) : $this->message->encodeMessage(404, "No teacher information found");
     }
 
-    private function parseTeacherInformation($info) {
+    private function parseTeacherInformation($info)
+    {
         $teacherInfo = [];
         $atendimentoAux = [];
         $lastUpdated = "";
@@ -54,31 +58,34 @@ class TeacherController extends Controller {
 
         $nome = $info->find('b')->text;
 
-        for($i = 0; $i < count($info->find('p')); $i++) {
+        for ($i = 0; $i < count($info->find('p')); $i++) {
             try {
-            if ($info->find('p')[$i]->text == "Ocupação Semanal do Docente") {
-                $aux = 0;
-                for($j = ($i+1); $j < count($info->find('p')); $j++) {
-                    preg_match("/([\d]{4}-[\d]{2}-[\d]{2})/", $info->find('p')[$j]->text, $ultimaAtualizacao);
+                if ($info->find('p')[$i]->text == "Ocupação Semanal do Docente") {
+                    $aux = 0;
+                    for ($j = ($i+1); $j < count($info->find('p')); $j++) {
+                        preg_match("/([\d]{4}-[\d]{2}-[\d]{2})/", $info->find('p')[$j]->text, $ultimaAtualizacao);
 
-                    preg_match("/(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})/", $info->find('p')[$j]->text, $email);
+                        preg_match("/(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})/", $info->find('p')[$j]->text, $email);
 
-                    if (isset($ultimaAtualizacao) && count($ultimaAtualizacao) > 1)
-                        $lastUpdated = $ultimaAtualizacao[0];
+                        if (isset($ultimaAtualizacao) && count($ultimaAtualizacao) > 1) {
+                            $lastUpdated = $ultimaAtualizacao[0];
+                        }
 
-                    if (isset($email) && count($email) > 1)
-                        $teacherEmail = $email[0];
+                        if (isset($email) && count($email) > 1) {
+                            $teacherEmail = $email[0];
+                        }
 
-                    if ($aux < count($info->find('ul'))) {
-                        preg_match_all("/(?:<li>)(.*?)(?:<\/li>)/", $info->find('ul')[$aux]->innerHtml, $diasAtendimento);
+                        if ($aux < count($info->find('ul'))) {
+                            preg_match_all("/(?:<li>)(.*?)(?:<\/li>)/", $info->find('ul')[$aux]->innerHtml, $diasAtendimento);
 
-                        $atendimentoAux[str_replace(":", "", $info->find('p')[$j]->text)] = $diasAtendimento[1];
+                            $atendimentoAux[str_replace(":", "", $info->find('p')[$j]->text)] = $diasAtendimento[1];
 
-                        $aux++;
+                            $aux++;
+                        }
                     }
                 }
+            } catch (Exception $ex) {
             }
-            } catch(Exception $ex) {}
         }
 
         $teacherInfo = array("name" => $nome, "schedule" => $atendimentoAux, "last_update" => $lastUpdated, "email" => $teacherEmail);

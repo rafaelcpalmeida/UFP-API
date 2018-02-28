@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\SOAPController;
 use App\Http\Controllers\MessagesController;
 
-class AuthController extends Controller {
+class AuthController extends Controller
+{
     private $request;
     private $soap;
     private $message;
@@ -19,7 +20,8 @@ class AuthController extends Controller {
      *
      * @return void
      */
-    public function __construct(Request $request, SOAPController $soap, MessagesController $message) {
+    public function __construct(Request $request, SOAPController $soap, MessagesController $message)
+    {
         $this->request = $request;
         $this->soap = $soap;
         $this->apiToken = $request->input("token");
@@ -28,7 +30,8 @@ class AuthController extends Controller {
         $this->message = $message;
     }
 
-    public function login() {
+    public function login()
+    {
         $authToken = $this->soap->getDataFromSOAPServer("Encrypt", array("Encrypt" => array("phrase" => "$this->username,$this->password")));
 
         $sessionToken = $this->soap->getDataFromSOAPServer("shakeHands", array("shakeHands" => array("input" => $authToken->EncryptResult)));
