@@ -63,6 +63,25 @@ class GradesController extends Controller
         return $this->message->encodeMessage(401, "Couldn't decrypt sent token");
     }
 
+    public function getExamGrades()
+    {
+        $tokenData = (object) $this->message->decryptToken($this->apiToken);
+
+        if (isset($tokenData->token)) {
+            $gradesAux = $this->soap->getDataFromSOAPServer("grade", array("grade" => array("token" => $tokenData->token)));
+
+            if (property_exists(json_decode($gradesAux->gradeResult), "Error")) {
+                return $this->message->encodeMessage(401, "Invalid token");
+            }
+
+            $detailedGrades = $this->parseExamGrades(json_decode($gradesAux->gradeResult)->grade->provisorio->finais);
+            
+            return (!empty($detailedGrades)) ? $this->message->encodeMessage(200, $detailedGrades) : $this->message->encodeMessage(404, "No exam grades information found");
+        }
+
+        return $this->message->encodeMessage(401, "Couldn't decrypt sent token");
+    }
+
     private function parseFinalGrades($grades)
     {
         $gradesAux = array();
@@ -80,6 +99,25 @@ class GradesController extends Controller
 
         foreach ($grades as $grade) {
             $gradesAux[$grade->AnoLectivo][$grade->Unidade][] = array("unidade" => $grade->Unidade, "elemento" => $grade->Elemento, "nota" => $grade->Nota);
+        }
+
+        return $gradesAux;
+    }
+
+    private function parseExamGrades($grades)
+    {
+        $gradesAux = array();
+
+        foreach ($grades as $grade) {
+            $gradesAux[] = array(
+                "unidade" => $grade->Unidade,
+                "epoca" => $grade->Epoca,
+                "nota_oral" => $grade->NotaOral,
+                "nota_exame" => $grade->Exame,
+                "nota_final" => $grade->Nota,
+                "consulta" => $grade->Consulta,
+                "data_oral" => $grade->Oral
+            );
         }
 
         return $gradesAux;
