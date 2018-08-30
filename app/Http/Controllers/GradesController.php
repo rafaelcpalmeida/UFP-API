@@ -76,7 +76,7 @@ class GradesController extends Controller
 
             $detailedGrades = $this->parseExamGrades(json_decode($gradesAux->gradeResult)->grade->provisorio->finais);
             
-            return (!empty($detailedGrades)) ? $this->message->encodeMessage(200, $detailedGrades) : $this->message->encodeMessage(404, "No detailed grades information found");
+            return (!empty($detailedGrades)) ? $this->message->encodeMessage(200, $detailedGrades) : $this->message->encodeMessage(404, "No exam grades information found");
         }
 
         return $this->message->encodeMessage(401, "Couldn't decrypt sent token");
@@ -103,7 +103,7 @@ class GradesController extends Controller
 
         return $gradesAux;
     }
-    
+
     private function parseExamGrades($grades)
     {
         $gradesAux = array();
