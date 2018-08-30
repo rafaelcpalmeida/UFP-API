@@ -31,6 +31,7 @@ $app->group(['prefix' => 'api'], function () use ($app) {
             $app->get('exams', 'ExamController@getExams');
             $app->get('grades/detailed', 'GradesController@getDetailedGrades');
             $app->get('grades/final', 'GradesController@getFinalGrades');
+            $app->get('grades/exam', 'GradesController@getExamGrades');
             $app->get('schedule', 'ScheduleController@getSchedule');
         });
     });
