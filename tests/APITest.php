@@ -3,20 +3,17 @@
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
-class ExampleTest extends TestCase
+class APITest extends TestCase
 {
     /**
      * A basic test example.
      *
      * @return void
      */
-    public function testExample()
+    public function checkAPIVersion()
     {
-        $this->get('/');
-
-        $this->assertEquals(
-            $this->app->version(),
-            $this->response->getContent()
+        $this->get('/api/v1')->seeJsonEquals(
+            ['Version' => '1.0']
         );
     }
 }
